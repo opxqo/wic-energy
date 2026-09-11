@@ -23,6 +23,14 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
+import {
+  Calendar,
+  CalendarDays,
+  Gauge,
+  Layers,
+  TrendingUp,
+  Zap,
+} from "lucide-react";
 
 export function OverviewChart({ overview }: { overview: UsageOverview }) {
   const months = overview.months;
@@ -112,7 +120,10 @@ export function OverviewChart({ overview }: { overview: UsageOverview }) {
         </div>
         <div className="grid grid-cols-2 divide-x divide-y border-t sm:flex sm:divide-y-0 sm:divide-x sm:border-t-0 sm:border-l">
           <div className="flex flex-col justify-center gap-1 px-5 py-4 text-left sm:px-6 sm:py-5">
-            <span className="text-xs text-muted-foreground">全部用电总量</span>
+            <span className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
+              <Zap className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+              全部用电总量
+            </span>
             <span className="text-base font-bold leading-none sm:text-2xl">
               {formatNumber(totalKwh)}{" "}
               <small className="text-xs font-normal text-muted-foreground">
@@ -121,7 +132,10 @@ export function OverviewChart({ overview }: { overview: UsageOverview }) {
             </span>
           </div>
           <div className="flex flex-col justify-center gap-1 px-5 py-4 text-left sm:px-6 sm:py-5">
-            <span className="text-xs text-muted-foreground">日用电峰值</span>
+            <span className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
+              <TrendingUp className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+              日用电峰值
+            </span>
             <span className="text-base font-bold leading-none sm:text-2xl">
               {formatNumber(peak)}{" "}
               <small className="text-xs font-normal text-muted-foreground">
@@ -130,7 +144,10 @@ export function OverviewChart({ overview }: { overview: UsageOverview }) {
             </span>
           </div>
           <div className="flex flex-col justify-center gap-1 px-5 py-4 text-left sm:px-6 sm:py-5">
-            <span className="text-xs text-muted-foreground">日均用电</span>
+            <span className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
+              <Gauge className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+              日均用电
+            </span>
             <span className="text-base font-bold leading-none sm:text-2xl">
               {formatNumber(avg)}{" "}
               <small className="text-xs font-normal text-muted-foreground">
@@ -139,7 +156,10 @@ export function OverviewChart({ overview }: { overview: UsageOverview }) {
             </span>
           </div>
           <div className="flex flex-col justify-center gap-1 px-5 py-4 text-left sm:px-6 sm:py-5">
-            <span className="text-xs text-muted-foreground">统计天数</span>
+            <span className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
+              <CalendarDays className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+              统计天数
+            </span>
             <span className="text-base font-bold leading-none sm:text-2xl">
               {allPoints.length}{" "}
               <small className="text-xs font-normal text-muted-foreground">
@@ -208,9 +228,24 @@ export function OverviewChart({ overview }: { overview: UsageOverview }) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead scope="col">日期</TableHead>
-                  <TableHead scope="col">所属月份</TableHead>
-                  <TableHead scope="col">用电量（kWh）</TableHead>
+                  <TableHead scope="col">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
+                      日期
+                    </span>
+                  </TableHead>
+                  <TableHead scope="col">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Layers className="h-3.5 w-3.5" aria-hidden="true" />
+                      所属月份
+                    </span>
+                  </TableHead>
+                  <TableHead scope="col">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Zap className="h-3.5 w-3.5" aria-hidden="true" />
+                      用电量（kWh）
+                    </span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

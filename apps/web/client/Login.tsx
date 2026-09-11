@@ -6,6 +6,7 @@ import { Button } from "./components/ui/button";
 import { Card, CardContent } from "./components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "./components/ui/field";
 import { Input } from "./components/ui/input";
+import { ArrowLeft, Lock, LogIn, Sparkles, User } from "lucide-react";
 import { useWebHaptics } from "./hooks/useWebHaptics";
 
 export function Login() {
@@ -62,7 +63,10 @@ export function Login() {
       <form className="form" onSubmit={submit} aria-busy={busy}>
         <FieldGroup>
         <Field>
-          <FieldLabel htmlFor="username">学校账号</FieldLabel>
+          <FieldLabel htmlFor="username" className="inline-flex items-center gap-1.5">
+            <User className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+            学校账号
+          </FieldLabel>
           <Input
             id="username"
             name="username"
@@ -74,7 +78,10 @@ export function Login() {
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor="password">密码</FieldLabel>
+          <FieldLabel htmlFor="password" className="inline-flex items-center gap-1.5">
+            <Lock className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+            密码
+          </FieldLabel>
           <Input
             id="password"
             name="password"
@@ -89,17 +96,20 @@ export function Login() {
           <Alert variant="destructive" className="message"><AlertDescription>{error}</AlertDescription></Alert>
         )}
         <div className="login-actions">
-          <Button type="submit" disabled={busy}>
+          <Button type="submit" disabled={busy} className="inline-flex items-center justify-center gap-2">
+            <LogIn className="h-4 w-4" aria-hidden="true" />
             {busy ? "登录中…" : "登录"}
           </Button>
           <Button
             type="button"
             variant="outline"
             disabled={busy}
+            className="inline-flex items-center justify-center gap-2"
             onClick={(event) => {
               if (event.currentTarget.form) submitDemo(event.currentTarget.form);
             }}
           >
+            <Sparkles className="h-4 w-4 text-amber-500" aria-hidden="true" />
             演示账户登录
           </Button>
         </div>
@@ -111,7 +121,10 @@ export function Login() {
       </CardContent>
       </Card>
       <p className="return-index">
-        <a href="/">回到首页</a>
+        <a href="/" className="inline-flex items-center gap-1.5">
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+          回到首页
+        </a>
       </p>
     </main>
   );

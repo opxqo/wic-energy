@@ -436,11 +436,24 @@ summary:focus-visible,
   position: relative;
   isolation: isolate;
   flex: 1 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   padding: 8px 12px;
   border-radius: 11px;
   background: transparent;
   color: #626d77;
   font-size: 13px;
+  cursor: pointer;
+}
+.query-nav button svg {
+  position: relative;
+  z-index: 1;
+  transition: transform 0.15s ease;
+}
+.query-nav button:hover:not(:disabled) svg {
+  transform: scale(1.1);
 }
 .query-nav button:hover:not(:disabled) {
   background: transparent;

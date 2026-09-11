@@ -15,6 +15,21 @@ import {
   type QueryResponse,
   type Result,
 } from "./api";
+import {
+  Wallet,
+  ChartColumn,
+  CalendarRange,
+  Clock,
+  Receipt,
+  Gift,
+  CalendarSearch,
+  LayoutDashboard,
+  Search,
+  LogOut,
+  LogIn,
+  BookOpen,
+  Calendar,
+} from "lucide-react";
 import { Alert, AlertDescription } from "./components/ui/alert";
 import { Button } from "./components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "./components/ui/field";
@@ -31,6 +46,20 @@ import { DatePicker } from "./components/DatePicker";
 import { ResultView } from "./components/ResultView";
 import { SparkleGitHubButton } from "./components/SparkleGitHubButton";
 import { useWebHaptics } from "./hooks/useWebHaptics";
+
+const KIND_ICONS: Record<
+  Kind,
+  React.ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>
+> = {
+  account: Wallet,
+  monthly: ChartColumn,
+  daily: CalendarRange,
+  hourly: Clock,
+  payments: Receipt,
+  subsidies: Gift,
+  months: CalendarSearch,
+  overview: LayoutDashboard,
+};
 
 export function App() {
   const [session, setSession] = useState<
@@ -208,10 +237,16 @@ export function App() {
         </span>
         {session === "authenticated" ? (
           <Button variant="secondary" size="sm" disabled={disabled} onClick={logout}>
+            <LogOut className="size-3.5 mr-1 shrink-0" aria-hidden="true" />
             退出
           </Button>
         ) : session === "anonymous" ? (
-          <Button asChild size="default"><a id="login" href="/login.html">登录</a></Button>
+          <Button asChild size="default">
+            <a id="login" href="/login.html">
+              <LogIn className="size-3.5 mr-1 shrink-0" aria-hidden="true" />
+              登录
+            </a>
+          </Button>
         ) : null}
       </div>
       </div>
@@ -219,6 +254,7 @@ export function App() {
         <p>查询宿舍余额，让每一度电都有迹可循。</p>
         <div className="intro-actions">
           <a href="/docs.html">
+            <BookOpen className="size-3.5 inline mr-1 -mt-0.5 shrink-0" aria-hidden="true" />
             查看接口文档 <span aria-hidden="true">↗</span>
           </a>
           <SparkleGitHubButton />
@@ -232,6 +268,7 @@ export function App() {
           <nav className="query-nav" aria-label="查询项目">
             {endpoints.map((e) => {
               const active = kind === e.kind;
+              const Icon = KIND_ICONS[e.kind];
               return (
                 <motion.button
                   key={e.kind}
@@ -252,6 +289,7 @@ export function App() {
                       }
                     />
                   )}
+                  <Icon className="size-4 shrink-0" aria-hidden="true" />
                   <span className="query-nav-label">{e.name}</span>
                 </motion.button>
               );
@@ -312,6 +350,7 @@ export function App() {
               </>
             )}
             <Button type="submit" disabled={disabled}>
+              <Search className="size-3.5 mr-1.5 shrink-0" aria-hidden="true" />
               {busy ? "处理中…" : "查询"}
             </Button>
             {(kind === "monthly" || kind === "daily") && !months.length && (
@@ -320,6 +359,7 @@ export function App() {
                 disabled={disabled}
                 onClick={() => select("months")}
               >
+                <Calendar className="size-3.5 mr-1.5 shrink-0" aria-hidden="true" />
                 查看可用月份
               </Button>
             )}
@@ -414,6 +454,15 @@ export function App() {
             rel="noopener noreferrer"
           >
             Terms &amp; License
+          </a>
+          <span className="footer-separator">·</span>
+          <a
+            href="https://allsvgicons.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Free & Open Source SVG Icons"
+          >
+            All SVG Icons
           </a>
         </p>
       </footer>

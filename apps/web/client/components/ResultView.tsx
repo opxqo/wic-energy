@@ -1,4 +1,18 @@
 import { lazy, Suspense } from "react";
+import {
+  Wallet,
+  CreditCard,
+  Gift,
+  Zap,
+  Hash,
+  Clock,
+  Radio,
+  Lightbulb,
+  Snowflake,
+  Calendar,
+  Coins,
+  User,
+} from "lucide-react";
 import type { Result } from "../api";
 import { StatusEmpty, formatNumber, PulsatingDots } from "./ui";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -19,37 +33,102 @@ export function ResultView({ result }: { result: Result }) {
   switch (result.kind) {
     case "account": {
       const a = result.response.data;
+      const statItems: Array<{
+        label: string;
+        value: number | null;
+        unit: string;
+        icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
+        iconClass: string;
+      }> = [
+        {
+          label: "账户总余额",
+          value: a.totalBalance,
+          unit: "元",
+          icon: Wallet,
+          iconClass: "text-primary",
+        },
+        {
+          label: "基本账户",
+          value: a.basicBalance,
+          unit: "元",
+          icon: CreditCard,
+          iconClass: "text-muted-foreground",
+        },
+        {
+          label: "补助账户",
+          value: a.subsidyBalance,
+          unit: "元",
+          icon: Gift,
+          iconClass: "text-emerald-600",
+        },
+        {
+          label: "电表读数",
+          value: a.meterReadingKwh,
+          unit: "kWh",
+          icon: Zap,
+          iconClass: "text-amber-500",
+        },
+      ];
+
+      const detailItems: Array<{
+        label: string;
+        value: string | number | null;
+        icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
+        iconClass?: string;
+      }> = [
+        { label: "电表号", value: a.meterNumber, icon: Hash },
+        { label: "抄表时间", value: a.readAt, icon: Clock },
+        { label: "通信状态", value: a.communicationStatus, icon: Radio },
+        {
+          label: "照明通道",
+          value: a.lightingStatus,
+          icon: Lightbulb,
+          iconClass: "text-amber-500",
+        },
+        {
+          label: "空调通道",
+          value: a.airConditioningStatus,
+          icon: Snowflake,
+          iconClass: "text-sky-500",
+        },
+      ];
+
       return (
         <div>
           <div className="stats-grid">
-            {[
-              ["账户总余额", a.totalBalance, "元"],
-              ["基本账户", a.basicBalance, "元"],
-              ["补助账户", a.subsidyBalance, "元"],
-              ["电表读数", a.meterReadingKwh, "kWh"],
-            ].map(([label, value, unit]) => (
-              <Card className="stat-card" key={String(label)} size="sm">
-                <CardHeader><CardTitle>{label}</CardTitle></CardHeader>
-                <CardContent><p>
-                  <strong>{formatNumber(value as number | null)}</strong>
-                  <span>{unit}</span>
-                </p></CardContent>
-              </Card>
-            ))}
+            {statItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Card className="stat-card" key={item.label} size="sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                      <Icon className={`size-3.5 shrink-0 ${item.iconClass}`} aria-hidden="true" />
+                      <span>{item.label}</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p>
+                      <strong>{formatNumber(item.value)}</strong>
+                      <span>{item.unit}</span>
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
           <dl className="account-details">
-            {[
-              ["电表号", a.meterNumber],
-              ["抄表时间", a.readAt],
-              ["通信状态", a.communicationStatus],
-              ["照明通道", a.lightingStatus],
-              ["空调通道", a.airConditioningStatus],
-            ].map(([label, value]) => (
-              <div key={label}>
-                <dt>{label}</dt>
-                <dd>{value ?? "—"}</dd>
-              </div>
-            ))}
+            {detailItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.label}>
+                  <dt className="flex items-center gap-1">
+                    <Icon className={`size-3 shrink-0 ${item.iconClass ?? "text-muted-foreground"}`} aria-hidden="true" />
+                    <span>{item.label}</span>
+                  </dt>
+                  <dd>{item.value ?? "—"}</dd>
+                </div>
+              );
+            })}
           </dl>
           <p className="note">— 表示学校暂未提供该数据。</p>
         </div>
@@ -95,8 +174,8 @@ export function ResultView({ result }: { result: Result }) {
         >
           <Table>
             <TableHeader><TableRow>
-              <TableHead scope="col">月份</TableHead>
-              <TableHead scope="col">月份 ID</TableHead>
+              <TableHead scope="col"><span className="inline-flex items-center gap-1.5"><Calendar className="size-3.5" aria-hidden="true" />月份</span></TableHead>
+              <TableHead scope="col"><span className="inline-flex items-center gap-1.5"><Hash className="size-3.5" aria-hidden="true" />月份 ID</span></TableHead>
             </TableRow></TableHeader>
             <TableBody>
               {result.response.data.map((m) => (
@@ -123,9 +202,9 @@ export function ResultView({ result }: { result: Result }) {
         >
           <Table>
             <TableHeader><TableRow>
-              <TableHead scope="col">时间</TableHead>
-              <TableHead scope="col">金额（元）</TableHead>
-              <TableHead scope="col">操作人员</TableHead>
+              <TableHead scope="col"><span className="inline-flex items-center gap-1.5"><Clock className="size-3.5" aria-hidden="true" />时间</span></TableHead>
+              <TableHead scope="col"><span className="inline-flex items-center gap-1.5"><Coins className="size-3.5" aria-hidden="true" />金额（元）</span></TableHead>
+              <TableHead scope="col"><span className="inline-flex items-center gap-1.5"><User className="size-3.5" aria-hidden="true" />操作人员</span></TableHead>
             </TableRow></TableHeader>
             <TableBody>
               {records.map((record, i) => (
