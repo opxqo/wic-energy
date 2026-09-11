@@ -49,6 +49,11 @@ import { DatePicker } from "./components/DatePicker";
 import { ResultView } from "./components/ResultView";
 import { SparkleGitHubButton } from "./components/SparkleGitHubButton";
 import { useWebHaptics } from "./hooks/useWebHaptics";
+import {
+  clearQueryCache,
+  readQueryCache,
+  writeQueryCache,
+} from "./queryCache";
 
 const KIND_ICONS: Record<
   Kind,
@@ -103,6 +108,7 @@ export function App() {
       })
       .catch((error) => {
         if (!active) return;
+        clearQueryCache();
         setSession("anonymous");
         if (!(error instanceof RequestError && error.status === 401))
           setError(
@@ -113,7 +119,11 @@ export function App() {
       active = false;
     };
   }, []);
-  async function executeQuery(targetKind: Kind, params?: URLSearchParams) {
+  async function executeQuery(
+    targetKind: Kind,
+    params?: URLSearchParams,
+    options: { force?: boolean } = {},
+  ) {
     if (locked.current) return;
     if (session !== "authenticated") {
       setError("请先登录学校账户，再进行查询。");
@@ -121,16 +131,29 @@ export function App() {
       return;
     }
     const targetEndpoint = endpoints.find((e) => e.kind === targetKind)!;
+    const queryString = params && params.size ? "?" + params.toString() : "";
+    const requestPath = targetEndpoint.path + queryString;
+    if (!options.force) {
+      const cached = readQueryCache<QueryResponse<Kind>>(requestPath);
+      if (cached) {
+        setResult({ kind: targetKind, response: cached } as Result);
+        if (targetKind === "months")
+          setMonthsResult(cached as QueryResponse<"months">);
+        setError("");
+        setStatus(`${targetEndpoint.name} · 已从缓存加载`);
+        return;
+      }
+    }
     locked.current = true;
     setBusy(true);
     setError("");
     setResult(null);
     setStatus(`正在查询${targetEndpoint.name}…`);
     try {
-      const queryString = params && params.size ? "?" + params.toString() : "";
       const response = await request<QueryResponse<Kind>>(
-        targetEndpoint.path + queryString,
+        requestPath,
       );
+      writeQueryCache(requestPath, response);
       setResult({ kind: targetKind, response } as Result);
       if (targetKind === "months")
         setMonthsResult(response as QueryResponse<"months">);
@@ -146,13 +169,19 @@ export function App() {
   useEffect(() => {
     if (session !== "authenticated") return;
     let active = true;
-    request<QueryResponse<"months">>("/api/months")
-      .then((response) => {
-        if (active) setMonthsResult(response);
-      })
-      // Month options are a convenience for other queries. A failure remains
-      // visible only when the user explicitly opens the months view.
-      .catch(() => {});
+    const cachedMonths = readQueryCache<QueryResponse<"months">>("/api/months");
+    if (cachedMonths) {
+      setMonthsResult(cachedMonths);
+    } else {
+      request<QueryResponse<"months">>("/api/months")
+        .then((response) => {
+          writeQueryCache("/api/months", response);
+          if (active) setMonthsResult(response);
+        })
+        // Month options are a convenience for other queries. A failure remains
+        // visible only when the user explicitly opens the months view.
+        .catch(() => {});
+    }
     void executeQuery("account");
     return () => {
       active = false;
@@ -162,6 +191,7 @@ export function App() {
     setError(error instanceof Error ? error.message : "请求失败，请稍后重试。");
     trigger("error");
     if (error instanceof RequestError && error.status === 401) {
+      clearQueryCache();
       setSession("anonymous");
       setResult(null);
       setMonthsResult(null);
@@ -214,7 +244,7 @@ export function App() {
       report(error);
       return;
     }
-    await executeQuery(kind, params);
+    await executeQuery(kind, params, { force: true });
   }
   async function logout() {
     if (locked.current || disabled) return;
@@ -222,6 +252,7 @@ export function App() {
     setBusy(true);
     try {
       await request("/api/logout", { method: "POST" });
+      clearQueryCache();
       setSession("anonymous");
       setResult(null);
       setMonthsResult(null);

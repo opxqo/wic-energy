@@ -43,6 +43,8 @@ const emptyUsage = {
 };
 let fetchMock: ReturnType<typeof vi.fn>;
 beforeEach(() => {
+  localStorage.clear();
+  sessionStorage.clear();
   fetchMock = vi.fn((path: string) =>
     response(
       path === "/api/user"
@@ -83,6 +85,34 @@ const ready = async () => {
 };
 
 describe("React query workflow", () => {
+  it("reuses fresh query data after remounting the page", async () => {
+    await ready();
+    expect(sessionStorage.length).toBe(2);
+
+    cleanup();
+    render(<App />);
+    await screen.findByText("学校账户已登录");
+    await screen.findByText("test-meter");
+
+    const requestedPaths = fetchMock.mock.calls.map(([path]) => path);
+    expect(requestedPaths.filter((path) => path === "/api/user")).toHaveLength(2);
+    expect(requestedPaths.filter((path) => path === "/api/months")).toHaveLength(1);
+    expect(requestedPaths.filter((path) => path === "/api/account")).toHaveLength(1);
+    expect(screen.getByText("账户总览 · 已从缓存加载")).toBeTruthy();
+  });
+
+  it("bypasses cached data when the user explicitly queries again", async () => {
+    await ready();
+    await userEvent.click(
+      screen.getByRole("button", { name: "查询", exact: true }),
+    );
+    await screen.findByText("账户总览 · 查询完成");
+    const accountRequests = fetchMock.mock.calls.filter(
+      ([path]) => path === "/api/account",
+    );
+    expect(accountRequests).toHaveLength(2);
+  });
+
   it("provides the animated GitHub project link", async () => {
     await ready();
     const link = screen.getByRole("link", {
@@ -303,6 +333,7 @@ describe("React query workflow", () => {
     );
     await screen.findByText("尚未登录");
     await waitFor(() => expect(screen.queryByText("test-meter")).toBeNull());
+    expect(sessionStorage.length).toBe(0);
     expect(fetchMock.mock.calls.at(-1)).toEqual([
       "/api/logout",
       { credentials: "same-origin", method: "POST" },
@@ -454,4 +485,3 @@ it("supports mobile sidebar drawer toggle, item selection, and escape key", asyn
   fireEvent.keyDown(window, { key: "Escape" });
   expect(trigger.getAttribute("aria-expanded")).toBe("false");
 });
-

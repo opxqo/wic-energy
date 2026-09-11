@@ -8,6 +8,7 @@ import { Field, FieldGroup, FieldLabel } from "./components/ui/field";
 import { Input } from "./components/ui/input";
 import { ArrowLeft, Lock, LogIn, Sparkles, User } from "lucide-react";
 import { useWebHaptics } from "./hooks/useWebHaptics";
+import { clearQueryCache } from "./queryCache";
 
 export function Login() {
   const [busy, setBusy] = useState(false);
@@ -34,6 +35,7 @@ export function Login() {
         }),
       });
       password.value = "";
+      clearQueryCache();
       trigger("success");
       window.location.replace("/");
     } catch (error) {
