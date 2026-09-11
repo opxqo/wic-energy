@@ -94,6 +94,7 @@ export function createApp(options: ConnectionOptions = connectionConfig()) {
   });
   const routes: Array<[string, EnergyQuery["kind"]]> = [
     ["/account", "account"],
+    ["/usage/overview", "overview"],
     ["/months", "months"],
     ["/usage/monthly", "monthly"],
     ["/usage/daily", "daily"],

@@ -263,7 +263,7 @@ export function App() {
             aria-busy={busy}
           >
             <FieldGroup className="controls">
-            {(kind === "monthly" || kind === "daily") && (
+            {(kind === "monthly" || kind === "daily" || kind === "overview") && (
               <Field>
                 <FieldLabel htmlFor="month-id">月份</FieldLabel>
                 {months.length ? (
@@ -271,9 +271,12 @@ export function App() {
                   <input type="hidden" name="monthId" value={monthId} />
                   <Select value={monthId} onValueChange={setMonthId} disabled={disabled}>
                     <SelectTrigger id="month-id" aria-label="月份" className="w-[170px]">
-                      <SelectValue placeholder="学校默认月份" />
+                      <SelectValue placeholder={kind === "overview" ? "最近月份总览" : "学校默认月份"} />
                     </SelectTrigger>
                     <SelectContent>
+                    {kind === "overview" && (
+                      <SelectItem value="">最近月份总览</SelectItem>
+                    )}
                     {months.map((m) => (
                       <SelectItem key={m.id} value={String(m.id)}>
                         {m.label}
@@ -307,7 +310,7 @@ export function App() {
             <Button type="submit" disabled={disabled}>
               {busy ? "处理中…" : "查询"}
             </Button>
-            {(kind === "monthly" || kind === "daily") && !months.length && (
+            {(kind === "monthly" || kind === "daily" || kind === "overview") && !months.length && (
               <Button
                 variant="outline"
                 disabled={disabled}
@@ -359,7 +362,10 @@ export function App() {
               <StatusEmpty
                 loading={busy}
                 loader={
-                  kind === "monthly" || kind === "daily" || kind === "hourly" ? (
+                  kind === "overview" ||
+                  kind === "monthly" ||
+                  kind === "daily" ||
+                  kind === "hourly" ? (
                     <PulsatingDots />
                   ) : undefined
                 }

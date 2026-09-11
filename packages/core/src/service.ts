@@ -65,6 +65,33 @@ export class EnergyService implements EnergyReader {
           }),
         );
         break;
+      case "overview": {
+        const monthsList = parseMonthOptions(
+          await this.upstream.get("mobile!yuelist.action"),
+        );
+        const targetMonths = query.monthId
+          ? monthsList.filter((m) => m.id === query.monthId)
+          : monthsList.slice(0, query.monthsCount ?? 3);
+        const months = [];
+        for (const m of targetMonths) {
+          const series = parseUsageSeries(
+            await this.upstream.get("mobile!rptdata.action", { id: m.id }),
+          );
+          const totalKwh = Number(
+            series.points.reduce((sum, p) => sum + p.value, 0).toFixed(2),
+          );
+          months.push({
+            monthId: m.id,
+            label: m.label,
+            year: m.year,
+            month: m.month,
+            totalKwh,
+            points: series.points,
+          });
+        }
+        result = { months };
+        break;
+      }
     }
     return result as EnergyResult<Q>;
   }

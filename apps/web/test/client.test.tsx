@@ -260,6 +260,41 @@ describe("React query workflow", () => {
     expect(fetchMock.mock.calls.at(-1)?.[0]).toBe("/api/usage/daily?monthId=6");
   });
 
+  it("renders interactive overview chart with daily points and month totals", async () => {
+    await ready();
+    await userEvent.click(
+      screen.getByRole("button", { name: "用电总览", exact: true }),
+    );
+    fetchMock.mockImplementationOnce(() =>
+      response(
+        envelope({
+          months: [
+            {
+              monthId: 1,
+              label: "2026年09月",
+              year: 2026,
+              month: 9,
+              totalKwh: 120.5,
+              points: [
+                { label: "01", value: 4.5 },
+                { label: "02", value: 5.0 },
+              ],
+            },
+          ],
+        }),
+      ),
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "查询", exact: true }),
+    );
+    await screen.findByText(
+      "以日为基本单位查看用电趋势，上方卡片显示各月用电总量",
+    );
+    expect(screen.getAllByText("120.5").length).toBeGreaterThan(0);
+    expect(screen.getByText("当月用电总量")).toBeTruthy();
+    expect(fetchMock.mock.calls.at(-1)?.[0]).toBe("/api/usage/overview");
+  });
+
   it("clears account results on logout", async () => {
     await ready();
     await userEvent.click(

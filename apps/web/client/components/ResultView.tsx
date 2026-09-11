@@ -11,6 +11,9 @@ import {
   TableRow,
 } from "./ui/table";
 const UsageChart = lazy(() => import("./UsageChart"));
+const OverviewChart = lazy(() =>
+  import("./OverviewChart").then((m) => ({ default: m.OverviewChart })),
+);
 
 export function ResultView({ result }: { result: Result }) {
   switch (result.kind) {
@@ -68,6 +71,18 @@ export function ResultView({ result }: { result: Result }) {
             series={result.response.data}
             kind={result.kind}
           />
+        </Suspense>
+      );
+    case "overview":
+      return (
+        <Suspense
+          fallback={
+            <StatusEmpty loading loader={<PulsatingDots />}>
+              正在加载总览图表…
+            </StatusEmpty>
+          }
+        >
+          <OverviewChart overview={result.response.data} />
         </Suspense>
       );
     case "months":

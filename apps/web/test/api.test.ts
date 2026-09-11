@@ -55,6 +55,11 @@ test("web login, isolation, cold app, cookies, bearer precedence, logout and err
     { headers: { cookie } },
   );
   assert.equal(rewrittenMonthly.status, 200);
+  const overview = await request("/api/usage/overview", {
+    headers: { cookie },
+  });
+  assert.equal(overview.status, 200);
+  assert.equal((await overview.json()).data.months.length, 1);
   assert.equal(
     (await request("/api/account?path=months", { headers: { cookie } })).status,
     400,

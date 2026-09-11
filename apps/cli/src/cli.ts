@@ -72,6 +72,7 @@ export async function runCli(args: string[], io: CliIO) {
   }
   const allowed: Record<string, string[]> = {
     account: [],
+    overview: ["id"],
     months: [],
     monthly: ["id"],
     daily: ["id"],
@@ -92,7 +93,7 @@ export async function runCli(args: string[], io: CliIO) {
     return flags.get(key) ?? params[i];
   });
   let query: EnergyQuery;
-  if (command === "monthly" || command === "daily")
+  if (command === "monthly" || command === "daily" || command === "overview")
     query = {
       kind: command,
       monthId: values[0] === undefined ? undefined : Number(values[0]),

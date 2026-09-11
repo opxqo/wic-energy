@@ -77,6 +77,12 @@ export const endpoints = [
     path: "/api/months",
     note: "查询学校提供的月份及 ID，用于月用电与日用电查询。",
   },
+  {
+    kind: "overview",
+    name: "用电总览",
+    path: "/api/usage/overview",
+    note: "以日为基本单位展示用电，月为日数总量。留空使用默认月份。",
+  },
 ] as const;
 export type Kind = (typeof endpoints)[number]["kind"];
 export type Result = {

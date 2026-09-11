@@ -20,6 +20,12 @@ export const rangeSchema = z
   .strict()
   .refine((v) => Boolean(v.from) === Boolean(v.to), "from 和 to 必须同时提供")
   .refine((v) => !v.from || !v.to || v.from <= v.to, "from 不能晚于 to");
+export const overviewSchema = z
+  .object({
+    monthsCount: z.coerce.number().int().positive().max(12).optional(),
+    monthId: z.coerce.number().int().positive().safe().optional(),
+  })
+  .strict();
 export function validate<T>(schema: z.ZodType<T>, value: unknown): T {
   const result = schema.safeParse(value);
   if (!result.success)
@@ -40,6 +46,8 @@ export function validateQuery(query: EnergyQuery): EnergyQuery {
     case "payments":
     case "subsidies":
       return { kind, ...validate(rangeSchema, params) };
+    case "overview":
+      return { kind, ...validate(overviewSchema, params) };
     case "account":
     case "months":
       validate(z.object({}).strict(), params);

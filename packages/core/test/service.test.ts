@@ -22,3 +22,20 @@ test("service owns upstream route mapping and parsing", async () => {
   ]);
   assert.equal(result.points[0]?.value, 0.5);
 });
+
+test("service maps overview query to months and daily series", async () => {
+  const upstream: UpstreamPort = {
+    async get(route) {
+      if (route.includes("yuelist")) {
+        return `[{"id":1,"text":"2026年09月"}]`;
+      }
+      return `<script>new Highcharts.Chart({title:{text:'九月用电'},xAxis:{categories:['01','02']},series:[{name:'日用电',data:[2.5, 3.5]}]})</script>`;
+    },
+  };
+  const service = new EnergyService(upstream);
+  const result = await service.query({ kind: "overview" });
+  assert.equal(result.months.length, 1);
+  assert.equal(result.months[0]?.label, "2026年09月");
+  assert.equal(result.months[0]?.totalKwh, 6);
+  assert.equal(result.months[0]?.points.length, 2);
+});

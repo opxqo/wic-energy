@@ -41,6 +41,19 @@ export interface SubsidyRecord {
   grantedAt: string;
 }
 
+export interface MonthDailyOverview {
+  monthId: number;
+  label: string;
+  year: number | null;
+  month: number | null;
+  totalKwh: number;
+  points: UsagePoint[];
+}
+
+export interface UsageOverview {
+  months: MonthDailyOverview[];
+}
+
 export type EnergyQuery =
   | { kind: "account" }
   | { kind: "months" }
@@ -48,7 +61,8 @@ export type EnergyQuery =
   | { kind: "daily"; monthId?: number }
   | { kind: "hourly"; date?: string }
   | { kind: "payments"; from?: string; to?: string }
-  | { kind: "subsidies"; from?: string; to?: string };
+  | { kind: "subsidies"; from?: string; to?: string }
+  | { kind: "overview"; monthsCount?: number; monthId?: number };
 
 export type EnergyResult<Q extends EnergyQuery> = Q extends { kind: "account" }
   ? AccountSummary
@@ -60,7 +74,9 @@ export type EnergyResult<Q extends EnergyQuery> = Q extends { kind: "account" }
         ? PaymentRecord[]
         : Q extends { kind: "subsidies" }
           ? SubsidyRecord[]
-          : never;
+          : Q extends { kind: "overview" }
+            ? UsageOverview
+            : never;
 
 export interface EnergyReader {
   query<Q extends EnergyQuery>(query: Q): Promise<EnergyResult<Q>>;
