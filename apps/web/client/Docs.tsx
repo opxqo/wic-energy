@@ -152,6 +152,15 @@ export function Docs() {
               <a href="/docs.html" className="text-foreground font-semibold">
                 接口文档
               </a>
+              <a
+                href="https://sd.doc.wic.edu.kg/"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1 text-primary hover:underline font-medium"
+              >
+                <span>Apifox 预调试</span>
+                <ExternalLink className="size-3" />
+              </a>
               <a href="/login.html" className="text-muted-foreground transition hover:text-foreground">
                 登录账户
               </a>
@@ -160,7 +169,7 @@ export function Docs() {
 
           {/* Header Right Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="relative hidden w-48 sm:block md:w-60">
+            <div className="relative hidden w-48 sm:block md:w-52">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-muted-foreground">
                 <Search className="size-3.5" />
               </div>
@@ -178,6 +187,19 @@ export function Docs() {
             </div>
 
             <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex">
+              <a
+                href="https://sd.doc.wic.edu.kg/"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 text-primary border-primary/30 hover:bg-primary/5"
+              >
+                <Zap className="size-3.5 fill-current" />
+                <span>Apifox 调试</span>
+                <ExternalLink className="size-3 opacity-60" />
+              </a>
+            </Button>
+
+            <Button variant="outline" size="sm" asChild className="hidden md:inline-flex">
               <a
                 href="https://github.com/opxqo/wic-energy"
                 target="_blank"
@@ -318,6 +340,27 @@ export function Docs() {
               <Badge variant="secondary">Node.js / Express 5</Badge>
               <Badge variant="outline">Cookie & Bearer Auth</Badge>
               <Badge variant="success">Highcharts AST 逆向解析</Badge>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 pt-3">
+              <Button size="sm" asChild className="gap-1.5 shadow-sm">
+                <a href="https://sd.doc.wic.edu.kg/" target="_blank" rel="noreferrer">
+                  <Zap className="size-3.5 fill-current" />
+                  <span>Apifox 在线预调试平台</span>
+                  <ExternalLink className="size-3 opacity-70" />
+                </a>
+              </Button>
+              <Button variant="outline" size="sm" asChild className="gap-1.5">
+                <a href="/">
+                  <span>打开 Web 控制台</span>
+                  <ArrowRight className="size-3.5" />
+                </a>
+              </Button>
+              <Button variant="ghost" size="sm" asChild className="gap-1.5 text-muted-foreground hover:text-foreground">
+                <a href="/api/openapi.json" target="_blank" rel="noreferrer">
+                  <Code2 className="size-3.5" />
+                  <span>OpenAPI 规范 JSON</span>
+                </a>
+              </Button>
             </div>
           </div>
 

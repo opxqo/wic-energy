@@ -2,6 +2,11 @@
 
 把学校能源管理页面转换为只读 JSON API。Web 和 CLI 独立运行，共享学校登录、查询与解析核心。无需预设任何账户密码。
 
+- **Web 控制台**：[https://sd.wic.edu.kg/](https://sd.wic.edu.kg/)
+- **接口文档（shadcn 规范）**：[https://sd.wic.edu.kg/docs.html](https://sd.wic.edu.kg/docs.html)
+- **Apifox 在线预调试平台**：[https://sd.doc.wic.edu.kg/](https://sd.doc.wic.edu.kg/)
+- **OpenAPI 3.0 规范**：[https://sd.wic.edu.kg/api/openapi.json](https://sd.wic.edu.kg/api/openapi.json)
+
 ## 开发与运行
 
 需要 Node.js 22+，在仓库根目录执行：
