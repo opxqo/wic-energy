@@ -1,0 +1,35 @@
+{
+  "name": "wic-energy",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "npm run dev:web",
+    "dev:web": "npm run build:core && npm run dev -w @wic-energy/web",
+    "dev:cli": "npm run build:core && npm run dev -w @wic-energy/cli --",
+    "cli": "npm run dev:cli --",
+    "build:core": "npm run build -w @wic-energy/core",
+    "build:web": "npm run build:core && npm run build -w @wic-energy/web",
+    "build:cli": "npm run build:core && npm run build -w @wic-energy/cli",
+    "build": "npm run build:core && npm run build -w @wic-energy/web && npm run build -w @wic-energy/cli",
+    "start": "npm start -w @wic-energy/web",
+    "test:core": "npm run test -w @wic-energy/core",
+    "test:web": "npm run build:core && npm run test -w @wic-energy/web",
+    "test:cli": "npm run build:core && npm run test -w @wic-energy/cli",
+    "test": "npm run build:core && npm run test --workspaces",
+    "check": "npm run build && npm test"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.19.11",
+    "tsx": "^4.23.1",
+    "typescript": "^5.9.3"
+  }
+}

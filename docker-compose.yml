@@ -1,0 +1,11 @@
+services:
+  wic-energy-web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      WIC_BASE_URL: ${WIC_BASE_URL:-http://sd.wic.edu.cn/mobile/}
+      WIC_TIMEOUT_MS: ${WIC_TIMEOUT_MS:-15000}

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>登录 · WIC Energy</title>
+    <link rel="stylesheet" href="/css/base.css" />
+    <script src="/login.js" defer></script>
+  </head>
+  <body>
+    <main class="container">
+      <h1 class="title">登录</h1>
+      <p class="subtitle">使用学校能源管理账户</p>
+      <form class="form" id="login-form">
+        <div class="item">
+          <label for="username">学校账号</label
+          ><input
+            id="username"
+            name="username"
+            autocomplete="username"
+            required
+            maxlength="256"
+            autofocus
+          />
+        </div>
+        <div class="item">
+          <label for="password">密码</label
+          ><input
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required
+            maxlength="1024"
+          />
+        </div>
+        <p id="message" class="message" role="alert" hidden></p>
+        <button type="submit" id="submit">登录</button>
+        <p class="note">
+          密码仅用于本次学校登录，不保存在服务端。会话过期后需重新登录。
+        </p>
+      </form>
+      <p class="return-index"><a href="/">回到首页</a></p>
+    </main>
+  </body>
+</html>

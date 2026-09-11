@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.DS_Store
+.wic-energy/
+*.session.json
+npm-debug.log*
+.vercel/
+reference/
+artifacts/

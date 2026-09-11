@@ -1,0 +1,17 @@
+{
+  "name": "@wic-energy/web",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/src/server.js",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@wic-energy/core": "2.0.0",
+    "express": "^5.2.1",
+    "dotenv": "^17.4.2"
+  }
+}
