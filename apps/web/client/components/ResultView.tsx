@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import type { Result } from "../api";
-import { StatusEmpty, formatNumber } from "./ui";
+import { StatusEmpty, formatNumber, PulsatingDots } from "./ui";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import {
   Table,
@@ -56,7 +56,13 @@ export function ResultView({ result }: { result: Result }) {
     case "daily":
     case "hourly":
       return (
-        <Suspense fallback={<StatusEmpty loading>正在加载图表…</StatusEmpty>}>
+        <Suspense
+          fallback={
+            <StatusEmpty loading loader={<PulsatingDots />}>
+              正在加载图表…
+            </StatusEmpty>
+          }
+        >
           <UsageChart
             key={result.response.meta.fetchedAt}
             series={result.response.data}

@@ -41,18 +41,22 @@ export function PageHeader({
     </header>
   );
 }
+export { PulsatingDots } from "./PulsatingDots";
+
 export function StatusEmpty({
   children,
   loading = false,
+  loader,
 }: {
   children: ReactNode;
   loading?: boolean;
+  loader?: ReactNode;
 }) {
   return (
     <ShadcnEmpty className="empty">
       <EmptyHeader>
         <EmptyMedia variant="icon" aria-hidden="true">
-          {loading ? <TrailingDots /> : "—"}
+          {loading ? (loader ?? <TrailingDots />) : "—"}
         </EmptyMedia>
         <EmptyDescription>{children}</EmptyDescription>
       </EmptyHeader>

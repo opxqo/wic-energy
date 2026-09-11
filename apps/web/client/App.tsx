@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./components/ui/select";
-import { PageHeader, Reveal, StatusEmpty } from "./components/ui";
+import { PageHeader, Reveal, StatusEmpty, PulsatingDots } from "./components/ui";
 import { DatePicker } from "./components/DatePicker";
 import { ResultView } from "./components/ResultView";
 import { SparkleGitHubButton } from "./components/SparkleGitHubButton";
@@ -356,7 +356,14 @@ export function App() {
             </Reveal>
           ) : (
             <Reveal key={busy ? "loading" : "empty"}>
-              <StatusEmpty loading={busy}>
+              <StatusEmpty
+                loading={busy}
+                loader={
+                  kind === "monthly" || kind === "daily" || kind === "hourly" ? (
+                    <PulsatingDots />
+                  ) : undefined
+                }
+              >
                 {busy ? (
                   "正在向学校查询，请稍候…"
                 ) : error ? (

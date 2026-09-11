@@ -162,6 +162,34 @@ describe("React query workflow", () => {
     expect(screen.queryByText("查看原始 JSON")).toBeNull();
   });
 
+  it("uses pulsating dots loader when loading chart queries", async () => {
+    await ready();
+    await userEvent.click(
+      screen.getByRole("button", { name: "月用电", exact: true }),
+    );
+    let finish!: (value: Response) => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise<Response>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const button = screen.getByRole("button", { name: "查询", exact: true });
+    fireEvent.submit(button.closest("form")!);
+    expect(await screen.findByTestId("pulsating-dots")).toBeTruthy();
+    finish(
+      response(
+        envelope({
+          title: "月度用电",
+          name: "用电量",
+          unit: "kWh",
+          points: [],
+        }),
+      ),
+    );
+    await screen.findByText("所选时间暂无用电记录。");
+  });
+
   it("rejects incomplete and reversed date ranges before making a request", async () => {
     await ready();
     await userEvent.click(
