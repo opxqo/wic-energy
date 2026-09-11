@@ -31,6 +31,7 @@ import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs"
 import { CodeBlock } from "./components/CodeBlock"
+import { ApifoxIcon } from "./components/ApifoxIcon"
 
 interface NavItem {
   title: string
@@ -156,10 +157,11 @@ export function Docs() {
                 href="https://sd.doc.wic.edu.kg/"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1 text-primary hover:underline font-medium"
+                className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition font-medium"
               >
+                <ApifoxIcon className="size-3.5" />
                 <span>Apifox 预调试</span>
-                <ExternalLink className="size-3" />
+                <ExternalLink className="size-3 opacity-60" />
               </a>
               <a href="/login.html" className="text-muted-foreground transition hover:text-foreground">
                 登录账户
@@ -186,14 +188,14 @@ export function Docs() {
               </div>
             </div>
 
-            <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex">
+            <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex border-border/80 hover:bg-muted">
               <a
                 href="https://sd.doc.wic.edu.kg/"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1.5 text-primary border-primary/30 hover:bg-primary/5"
+                className="flex items-center gap-1.5 font-medium"
               >
-                <Zap className="size-3.5 fill-current" />
+                <ApifoxIcon className="size-3.5" />
                 <span>Apifox 调试</span>
                 <ExternalLink className="size-3 opacity-60" />
               </a>
@@ -342,11 +344,11 @@ export function Docs() {
               <Badge variant="success">Highcharts AST 逆向解析</Badge>
             </div>
             <div className="flex flex-wrap items-center gap-3 pt-3">
-              <Button size="sm" asChild className="gap-1.5 shadow-sm">
+              <Button size="sm" asChild className="gap-1.5 shadow-sm bg-[#f44a53] text-white hover:bg-[#e03842]">
                 <a href="https://sd.doc.wic.edu.kg/" target="_blank" rel="noreferrer">
-                  <Zap className="size-3.5 fill-current" />
-                  <span>Apifox 在线预调试平台</span>
-                  <ExternalLink className="size-3 opacity-70" />
+                  <ApifoxIcon className="size-3.5 fill-white" />
+                  <span className="font-semibold">Apifox 在线预调试平台</span>
+                  <ExternalLink className="size-3 opacity-80" />
                 </a>
               </Button>
               <Button variant="outline" size="sm" asChild className="gap-1.5">
@@ -866,7 +868,17 @@ console.log("Token:", data.data.cookie);`}
               })}
             </ul>
 
-            <div className="pt-6 border-t border-border/40 space-y-2 text-xs text-muted-foreground">
+            <div className="pt-6 border-t border-border/40 space-y-2.5 text-xs text-muted-foreground">
+              <a
+                href="https://sd.doc.wic.edu.kg/"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 text-foreground/80 hover:text-foreground font-medium"
+              >
+                <ApifoxIcon className="size-3.5" />
+                <span>Apifox 在线预调试平台</span>
+                <ExternalLink className="size-3 opacity-60" />
+              </a>
               <a
                 href="https://github.com/opxqo/wic-energy/issues"
                 target="_blank"
