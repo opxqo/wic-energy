@@ -10,6 +10,9 @@ test("web login, isolation, cold app, cookies, bearer precedence, logout and err
   const request = (path: string, init?: RequestInit) =>
     fetch(app.url + path, init);
   assert.equal((await request("/api/health")).status, 200);
+  const openApiRes = await request("/api/openapi.json");
+  assert.equal(openApiRes.status, 200);
+  assert.equal((await openApiRes.json()).openapi, "3.0.3");
   for (const page of ["/", "/login.html", "/docs.html"]) {
     const response = await request(page);
     assert.equal(response.status, 200);

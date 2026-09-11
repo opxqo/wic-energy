@@ -17,6 +17,7 @@ import {
   type ConnectionOptions,
   type EnergyQuery,
 } from "@wic-energy/core";
+import { openApiSpec } from "./openapi.js";
 
 const COOKIE = "wic_energy_session";
 function cookieOptions(req: Request) {
@@ -69,6 +70,9 @@ export function createApp(options: ConnectionOptions = connectionConfig()) {
     next();
   });
   app.get("/api/health", (_req, res) => res.json({ ok: true }));
+  app.get(["/api/openapi.json", "/api/openapi"], (_req, res) =>
+    res.json(openApiSpec),
+  );
   app.post("/api/login", async (req, res) => {
     const { username, password } = req.body ?? {};
     if (

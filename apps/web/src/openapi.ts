@@ -1,0 +1,752 @@
+export const openApiSpec = {
+  openapi: "3.0.3",
+  info: {
+    title: "WIC Energy 宿电查询中间件 API",
+    description: "WIC Energy 提供了整套基于 REST 规范的高性能宿电数据查询服务。供客服预调试、系统监控与自动化脚本集成使用。支持电表余额查询、全历史日用电总览、月度/日度/72小时用电统计及缴费补助记录。",
+    version: "2.0.0",
+    contact: {
+      name: "WIC Energy Team",
+      url: "https://github.com/opxqo/wic-energy",
+    },
+  },
+  servers: [
+    {
+      url: "https://sd.wic.edu.kg",
+      description: "生产环境 (线上服务)",
+    },
+    {
+      url: "http://localhost:3000",
+      description: "本地开发环境",
+    },
+  ],
+  tags: [
+    {
+      name: "认证与会话",
+      description: "用户登录、会话验证与注销",
+    },
+    {
+      name: "账户与总览",
+      description: "电表读数、余额与全周期日用电量总览",
+    },
+    {
+      name: "用电图表数据",
+      description: "月用电、日用电及 72 小时颗粒度时序数据",
+    },
+    {
+      name: "账单与流水",
+      description: "充值缴费与学校月度补助记录",
+    },
+    {
+      name: "系统监控",
+      description: "中间件健康检查与版本探针",
+    },
+  ],
+  paths: {
+    "/api/login": {
+      post: {
+        tags: ["认证与会话"],
+        summary: "学校账户登录",
+        description: "使用学校宿舍用电账号和密码登录，换取上游会话 JSessionID。在浏览器中会自动存入 HttpOnly Cookie；在 Apifox 调试或第三方集成时，可直接在后续请求中使用该凭据（Bearer Token 格式或 Cookie 格式）。",
+        operationId: "login",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/LoginRequest",
+              },
+              example: {
+                username: "南1-548",
+                password: "cy@123",
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "登录成功，返回会话凭据",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/LoginResponse",
+                },
+                example: {
+                  data: {
+                    cookie: "JSESSIONID=E4C6D90184A3BF29107DE9C201F82B34",
+                  },
+                },
+              },
+            },
+          },
+          "400": {
+            $ref: "#/components/responses/400Error",
+          },
+          "401": {
+            $ref: "#/components/responses/401Error",
+          },
+          "502": {
+            $ref: "#/components/responses/502Error",
+          },
+        },
+      },
+    },
+    "/api/user": {
+      get: {
+        tags: ["认证与会话"],
+        summary: "检查会话状态",
+        description: "验证当前携带的凭据（Cookie 或 Authorization 头）是否依然有效。",
+        operationId: "checkUserSession",
+        security: [{ bearerAuth: [] }, { cookieAuth: [] }],
+        responses: {
+          "200": {
+            description: "会话有效",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    data: {
+                      type: "object",
+                      properties: {
+                        authenticated: { type: "boolean", example: true },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          "401": {
+            $ref: "#/components/responses/401Error",
+          },
+        },
+      },
+    },
+    "/api/logout": {
+      post: {
+        tags: ["认证与会话"],
+        summary: "安全登出",
+        description: "清除当前客户端在中间件的登录凭据 Cookie。",
+        operationId: "logout",
+        responses: {
+          "200": {
+            description: "退出成功",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    data: {
+                      type: "object",
+                      properties: {
+                        authenticated: { type: "boolean", example: false },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/api/account": {
+      get: {
+        tags: ["账户与总览"],
+        summary: "查询账户余额与电表状态",
+        description: "获取指定房间的电表实时读数、账户总余额、基本账户、补助账户及通信/通道合闸状态。",
+        operationId: "getAccountSummary",
+        security: [{ bearerAuth: [] }, { cookieAuth: [] }],
+        responses: {
+          "200": {
+            description: "成功获取账户总览数据",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/AccountResponse",
+                },
+                example: {
+                  data: {
+                    meterNumber: "0120240901",
+                    totalBalance: 68.5,
+                    basicBalance: 50.0,
+                    subsidyBalance: 18.5,
+                    meterReadingKwh: 1420.8,
+                    readAt: "2026-09-11 10:30",
+                    communicationStatus: "正常",
+                    lightingStatus: "合闸",
+                    airConditioningStatus: "合闸",
+                  },
+                  meta: {
+                    source: "school.edu.cn",
+                    fetchedAt: "2026-09-11T12:00:00.000Z",
+                    query: { kind: "account" },
+                  },
+                },
+              },
+            },
+          },
+          "401": { $ref: "#/components/responses/401Error" },
+          "502": { $ref: "#/components/responses/502Error" },
+        },
+      },
+    },
+    "/api/usage/overview": {
+      get: {
+        tags: ["账户与总览"],
+        summary: "全历史日用电总览（自动聚合全量月份）",
+        description: "按时间顺序连续拼接历史全部可用月份的每日用电量，供绘制全周期交互图表使用。",
+        operationId: "getUsageOverview",
+        security: [{ bearerAuth: [] }, { cookieAuth: [] }],
+        parameters: [
+          {
+            name: "monthId",
+            in: "query",
+            required: false,
+            description: "指定特定月份 ID。留空则自动查询全部可用月份。",
+            schema: { type: "integer", example: 1 },
+          },
+          {
+            name: "monthsCount",
+            in: "query",
+            required: false,
+            description: "限制返回的历史月份数量（最多 36 个月）。留空返回全部可用月份。",
+            schema: { type: "integer", maximum: 36, example: 12 },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "成功获取全周期用电总览数据",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/OverviewResponse",
+                },
+                example: {
+                  data: {
+                    months: [
+                      {
+                        monthId: 1,
+                        label: "2026年01月",
+                        year: 2026,
+                        month: 1,
+                        totalKwh: 105.14,
+                        points: [
+                          { label: "01", value: 3.4 },
+                          { label: "02", value: 4.1 },
+                        ],
+                      },
+                      {
+                        monthId: 2,
+                        label: "2026年02月",
+                        year: 2026,
+                        month: 2,
+                        totalKwh: 0.01,
+                        points: [],
+                      },
+                    ],
+                  },
+                  meta: {
+                    source: "school.edu.cn",
+                    fetchedAt: "2026-09-11T12:00:00.000Z",
+                    query: { kind: "overview" },
+                  },
+                },
+              },
+            },
+          },
+          "401": { $ref: "#/components/responses/401Error" },
+          "502": { $ref: "#/components/responses/502Error" },
+        },
+      },
+    },
+    "/api/months": {
+      get: {
+        tags: ["用电图表数据"],
+        summary: "查询可用月份列表",
+        description: "获取学校管理系统当前记录的所有可用月份列表及其 monthId 字典。",
+        operationId: "getAvailableMonths",
+        security: [{ bearerAuth: [] }, { cookieAuth: [] }],
+        responses: {
+          "200": {
+            description: "成功获取可用月份列表",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/MonthsResponse",
+                },
+                example: {
+                  data: [
+                    { id: 1, label: "2026年09月", year: 2026, month: 9 },
+                    { id: 2, label: "2026年08月", year: 2026, month: 8 },
+                  ],
+                  meta: {
+                    source: "school.edu.cn",
+                    fetchedAt: "2026-09-11T12:00:00.000Z",
+                    query: { kind: "months" },
+                  },
+                },
+              },
+            },
+          },
+          "401": { $ref: "#/components/responses/401Error" },
+        },
+      },
+    },
+    "/api/usage/daily": {
+      get: {
+        tags: ["用电图表数据"],
+        summary: "查询指定月份每日用电量",
+        description: "获取指定月份（默认当前月）中每一天的用电度数时序列表。",
+        operationId: "getDailyUsage",
+        security: [{ bearerAuth: [] }, { cookieAuth: [] }],
+        parameters: [
+          {
+            name: "monthId",
+            in: "query",
+            required: false,
+            description: "目标月份 ID（从 /api/months 获取）。留空为当前月。",
+            schema: { type: "integer", example: 1 },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "成功获取日用电量时序数据",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/UsageSeriesResponse",
+                },
+                example: {
+                  data: {
+                    title: "日用电",
+                    name: "用电量",
+                    unit: "kWh",
+                    points: [
+                      { label: "01", value: 3.2 },
+                      { label: "02", value: 4.5 },
+                    ],
+                  },
+                  meta: {
+                    source: "school.edu.cn",
+                    fetchedAt: "2026-09-11T12:00:00.000Z",
+                    query: { kind: "daily", monthId: 1 },
+                  },
+                },
+              },
+            },
+          },
+          "401": { $ref: "#/components/responses/401Error" },
+          "502": { $ref: "#/components/responses/502Error" },
+        },
+      },
+    },
+    "/api/usage/monthly": {
+      get: {
+        tags: ["用电图表数据"],
+        summary: "查询月度用电量统计（近6个月窗口）",
+        description: "获取截至指定月份的近 6 个月用电量柱状图数据。",
+        operationId: "getMonthlyUsage",
+        security: [{ bearerAuth: [] }, { cookieAuth: [] }],
+        parameters: [
+          {
+            name: "monthId",
+            in: "query",
+            required: false,
+            description: "目标月份 ID。留空为默认最新月份。",
+            schema: { type: "integer", example: 1 },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "成功获取月度用电数据",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/UsageSeriesResponse",
+                },
+              },
+            },
+          },
+          "401": { $ref: "#/components/responses/401Error" },
+          "502": { $ref: "#/components/responses/502Error" },
+        },
+      },
+    },
+    "/api/usage/hourly": {
+      get: {
+        tags: ["用电图表数据"],
+        summary: "查询 72 小时颗粒度用电量",
+        description: "以指定日期为结束点，回溯前 72 个小时的小时级用电明细。",
+        operationId: "getHourlyUsage",
+        security: [{ bearerAuth: [] }, { cookieAuth: [] }],
+        parameters: [
+          {
+            name: "date",
+            in: "query",
+            required: false,
+            description: "结束日期（格式：YYYY-MM-DD）。留空为学校默认当天。",
+            schema: { type: "string", format: "date", example: "2026-09-11" },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "成功获取 72 小时用电数据",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/UsageSeriesResponse",
+                },
+              },
+            },
+          },
+          "400": { $ref: "#/components/responses/400Error" },
+          "401": { $ref: "#/components/responses/401Error" },
+          "502": { $ref: "#/components/responses/502Error" },
+        },
+      },
+    },
+    "/api/payments": {
+      get: {
+        tags: ["账单与流水"],
+        summary: "查询充值缴费记录",
+        description: "获取指定时间范围内的充值记录（开始与结束日期需同时指定或同时省略）。",
+        operationId: "getPaymentRecords",
+        security: [{ bearerAuth: [] }, { cookieAuth: [] }],
+        parameters: [
+          {
+            name: "from",
+            in: "query",
+            required: false,
+            description: "开始日期（YYYY-MM-DD）",
+            schema: { type: "string", format: "date", example: "2026-01-01" },
+          },
+          {
+            name: "to",
+            in: "query",
+            required: false,
+            description: "结束日期（YYYY-MM-DD）",
+            schema: { type: "string", format: "date", example: "2026-09-11" },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "成功获取缴费流水",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/TableRecordsResponse",
+                },
+                example: {
+                  data: [
+                    {
+                      paidAt: "2026-08-15 14:20:00",
+                      amountYuan: 50.0,
+                      channel: "微信校园支付",
+                      operator: "系统充值",
+                    },
+                  ],
+                  meta: {
+                    source: "school.edu.cn",
+                    fetchedAt: "2026-09-11T12:00:00.000Z",
+                    query: { kind: "payments" },
+                  },
+                },
+              },
+            },
+          },
+          "400": { $ref: "#/components/responses/400Error" },
+          "401": { $ref: "#/components/responses/401Error" },
+          "502": { $ref: "#/components/responses/502Error" },
+        },
+      },
+    },
+    "/api/subsidies": {
+      get: {
+        tags: ["账单与流水"],
+        summary: "查询学校用电月度补助记录",
+        description: "获取指定时间范围内的月度补贴发放流水。",
+        operationId: "getSubsidyRecords",
+        security: [{ bearerAuth: [] }, { cookieAuth: [] }],
+        parameters: [
+          {
+            name: "from",
+            in: "query",
+            required: false,
+            description: "开始日期（YYYY-MM-DD）",
+            schema: { type: "string", format: "date", example: "2026-01-01" },
+          },
+          {
+            name: "to",
+            in: "query",
+            required: false,
+            description: "结束日期（YYYY-MM-DD）",
+            schema: { type: "string", format: "date", example: "2026-09-11" },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "成功获取月补发放记录",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/TableRecordsResponse",
+                },
+              },
+            },
+          },
+          "400": { $ref: "#/components/responses/400Error" },
+          "401": { $ref: "#/components/responses/401Error" },
+          "502": { $ref: "#/components/responses/502Error" },
+        },
+      },
+    },
+    "/api/health": {
+      get: {
+        tags: ["系统监控"],
+        summary: "服务健康探针",
+        description: "用于负载均衡、容器健康检查和可用性监控。",
+        operationId: "healthCheck",
+        responses: {
+          "200": {
+            description: "服务正常运行",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    ok: { type: "boolean", example: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JSESSIONID=...",
+        description: "Apifox 或外部脚本调用时使用：在 Header 填入 Authorization: Bearer JSESSIONID=...",
+      },
+      cookieAuth: {
+        type: "apiKey",
+        in: "cookie",
+        name: "wic_energy_session",
+        description: "Web 浏览器自带环境凭据",
+      },
+    },
+    responses: {
+      "400Error": {
+        description: "请求参数不符合规则",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
+            example: {
+              error: {
+                code: "VALIDATION_ERROR",
+                message: "开始日期不能晚于结束日期",
+              },
+            },
+          },
+        },
+      },
+      "401Error": {
+        description: "未登录或学校会话过期",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
+            example: {
+              error: {
+                code: "UNAUTHORIZED",
+                message: "请先登录学校账户",
+              },
+            },
+          },
+        },
+      },
+      "502Error": {
+        description: "上游报表服务异常或页面解析失败",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
+            example: {
+              error: {
+                code: "UPSTREAM_ERROR",
+                message: "学校报表响应超时，请稍后重试",
+              },
+            },
+          },
+        },
+      },
+    },
+    schemas: {
+      LoginRequest: {
+        type: "object",
+        required: ["username", "password"],
+        properties: {
+          username: {
+            type: "string",
+            description: "宿舍房间账号（如 南1-548）",
+            example: "南1-548",
+          },
+          password: {
+            type: "string",
+            description: "查询密码",
+            example: "cy@123",
+          },
+        },
+      },
+      LoginResponse: {
+        type: "object",
+        properties: {
+          data: {
+            type: "object",
+            properties: {
+              cookie: {
+                type: "string",
+                description: "学校上游会话 Cookie 值",
+                example: "JSESSIONID=E4C6D90184A3BF29107DE9C201F82B34",
+              },
+            },
+          },
+        },
+      },
+      AccountResponse: {
+        type: "object",
+        properties: {
+          data: {
+            type: "object",
+            properties: {
+              meterNumber: { type: "string", description: "电表出厂序列号", example: "0120240901" },
+              totalBalance: { type: "number", description: "账户总余额（元）", example: 68.5 },
+              basicBalance: { type: "number", description: "基本电费账户（元）", example: 50.0 },
+              subsidyBalance: { type: "number", nullable: true, description: "补助账户余额（元）", example: 18.5 },
+              meterReadingKwh: { type: "number", description: "当前电表总示数 (kWh)", example: 1420.8 },
+              readAt: { type: "string", nullable: true, description: "最后抄表时间", example: "2026-09-11 10:30" },
+              communicationStatus: { type: "string", nullable: true, description: "通信网关状态", example: "正常" },
+              lightingStatus: { type: "string", nullable: true, description: "照明通道状态", example: "合闸" },
+              airConditioningStatus: { type: "string", nullable: true, description: "空调动力通道状态", example: "合闸" },
+            },
+          },
+          meta: { $ref: "#/components/schemas/ResponseMeta" },
+        },
+      },
+      OverviewResponse: {
+        type: "object",
+        properties: {
+          data: {
+            type: "object",
+            properties: {
+              months: {
+                type: "array",
+                description: "按月份排列的历史日用电聚合列表",
+                items: {
+                  type: "object",
+                  properties: {
+                    monthId: { type: "integer", example: 1 },
+                    label: { type: "string", example: "2026年01月" },
+                    year: { type: "integer", example: 2026 },
+                    month: { type: "integer", example: 1 },
+                    totalKwh: { type: "number", example: 105.14 },
+                    points: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          label: { type: "string", example: "01" },
+                          value: { type: "number", example: 3.4 },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          meta: { $ref: "#/components/schemas/ResponseMeta" },
+        },
+      },
+      MonthsResponse: {
+        type: "object",
+        properties: {
+          data: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                id: { type: "integer", example: 1 },
+                label: { type: "string", example: "2026年09月" },
+                year: { type: "integer", example: 2026 },
+                month: { type: "integer", example: 9 },
+              },
+            },
+          },
+          meta: { $ref: "#/components/schemas/ResponseMeta" },
+        },
+      },
+      UsageSeriesResponse: {
+        type: "object",
+        properties: {
+          data: {
+            type: "object",
+            properties: {
+              title: { type: "string", example: "日用电" },
+              name: { type: "string", example: "用电量" },
+              unit: { type: "string", example: "kWh" },
+              points: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    label: { type: "string", example: "01" },
+                    value: { type: "number", example: 3.5 },
+                  },
+                },
+              },
+            },
+          },
+          meta: { $ref: "#/components/schemas/ResponseMeta" },
+        },
+      },
+      TableRecordsResponse: {
+        type: "object",
+        properties: {
+          data: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: true,
+            },
+          },
+          meta: { $ref: "#/components/schemas/ResponseMeta" },
+        },
+      },
+      ResponseMeta: {
+        type: "object",
+        properties: {
+          source: { type: "string", example: "school.edu.cn" },
+          fetchedAt: { type: "string", format: "date-time", example: "2026-09-11T12:00:00.000Z" },
+          query: { type: "object", additionalProperties: true },
+        },
+      },
+      ErrorResponse: {
+        type: "object",
+        properties: {
+          error: {
+            type: "object",
+            required: ["message"],
+            properties: {
+              code: { type: "string", example: "VALIDATION_ERROR" },
+              message: { type: "string", example: "参数错误" },
+            },
+          },
+        },
+      },
+    },
+  },
+};
