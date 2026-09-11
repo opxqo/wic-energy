@@ -238,6 +238,14 @@ export function App() {
     <main className="container home-page">
       {/* Mobile Top AppBar (Sticky, Mobile Only) */}
       <header className="mobile-appbar" aria-label="移动端顶部导航">
+        <a href="/" className="mobile-brand-link" aria-label="WIC Energy 首页">
+          <img
+            className="mobile-brand-mark"
+            src="/icons/wic-energy-mark.png"
+            alt=""
+            aria-hidden="true"
+          />
+        </a>
         <button
           type="button"
           className="mobile-menu-trigger"
@@ -324,8 +332,16 @@ export function App() {
         >
           <div className="sidebar-header">
             <div className="sidebar-brand">
-              <span className="sidebar-brand-title">WIC Energy</span>
-              <span className="sidebar-brand-sub">智慧能源管理</span>
+              <img
+                className="sidebar-brand-mark"
+                src="/icons/wic-energy-mark.png"
+                alt=""
+                aria-hidden="true"
+              />
+              <span className="sidebar-brand-copy">
+                <span className="sidebar-brand-title">WIC Energy</span>
+                <span className="sidebar-brand-sub">智慧能源管理</span>
+              </span>
             </div>
             <button
               type="button"
