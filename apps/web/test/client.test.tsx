@@ -260,7 +260,7 @@ describe("React query workflow", () => {
     await userEvent.click(screen.getByRole("option", { name: "2026年04月" }));
     await screen.findByText("四月用电");
     await userEvent.click(screen.getByText("数据明细 · 2 项"));
-    expect(screen.getByRole("cell", { name: "第 1 项" })).toBeTruthy();
+    expect(screen.getByRole("cell", { name: "04月01日" })).toBeTruthy();
     expect(screen.getByRole("cell", { name: "0", exact: true })).toBeTruthy();
     expect(fetchMock.mock.calls.at(-1)?.[0]).toBe("/api/usage/daily?monthId=6");
   });
@@ -346,6 +346,33 @@ describe("React query workflow", () => {
     );
     await screen.findByText("月度用电");
     expect(fetchMock.mock.calls.at(-1)?.[0]).toBe("/api/usage/monthly");
+  });
+
+  it("formats 72-hour chart points into clear, rational timestamps instead of item numbers", async () => {
+    await ready();
+    fetchMock.mockImplementationOnce(() =>
+      response(
+        envelope({
+          title: "2026-09-09到2026-09-11",
+          name: "72小时用电",
+          unit: "kWh",
+          points: Array.from({ length: 72 }, (_, i) => ({
+            label: i === 12 || i === 36 || i === 60 ? "12" : i === 24 || i === 48 ? "0" : "",
+            value: i === 50 ? 0.01 : 0.2,
+          })),
+        }),
+      ),
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "72 小时用电", exact: true }),
+    );
+    await screen.findByText("2026-09-09到2026-09-11");
+    await userEvent.click(screen.getByText("数据明细 · 72 项"));
+    // Point 0 should be 2026-09-09 00:00
+    expect(screen.getByRole("cell", { name: "2026-09-09 00:00" })).toBeTruthy();
+    // Point 50 should be 2026-09-11 02:00
+    expect(screen.getByRole("cell", { name: "2026-09-11 02:00" })).toBeTruthy();
+    expect(screen.getByRole("cell", { name: "0.01", exact: true })).toBeTruthy();
   });
 });
 

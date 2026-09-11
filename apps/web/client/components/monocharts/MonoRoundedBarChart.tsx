@@ -14,9 +14,11 @@ import type { UsagePoint } from "@wic-energy/core";
 export function MonoRoundedBarChart({
   points,
   name,
+  tickFormatter,
 }: {
-  points: UsagePoint[];
+  points: Array<{ label: string; fullLabel?: string; value: number }>;
   name: string;
+  tickFormatter?: (value: string) => string;
 }) {
   const reduced = useReducedMotion();
   return (
@@ -40,7 +42,8 @@ export function MonoRoundedBarChart({
             dataKey="label"
             tickLine={false}
             axisLine={false}
-            minTickGap={24}
+            minTickGap={28}
+            tickFormatter={tickFormatter}
             tick={{ fontSize: 11, fill: "#687580" }}
           />
           <YAxis
@@ -53,6 +56,10 @@ export function MonoRoundedBarChart({
               borderRadius: 12,
               border: "1px solid #e2e6e9",
               fontSize: 12,
+            }}
+            labelFormatter={(_label, payload) => {
+              const item = payload?.[0]?.payload;
+              return item?.fullLabel ?? _label;
             }}
             formatter={(value) => [`${value} kWh`, name]}
             cursor={{ fill: "rgba(0,0,0,0.035)" }}
