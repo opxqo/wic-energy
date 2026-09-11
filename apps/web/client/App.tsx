@@ -29,6 +29,9 @@ import {
   LogIn,
   BookOpen,
   Calendar,
+  Menu,
+  X,
+  ChevronRight,
 } from "lucide-react";
 import { Alert, AlertDescription } from "./components/ui/alert";
 import { Button } from "./components/ui/button";
@@ -74,12 +77,24 @@ export function App() {
     QueryResponse<"months"> | null
   >(null);
   const [monthId, setMonthId] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const locked = useRef(false);
   const { trigger } = useWebHaptics();
   const reducedMotion = useReducedMotion();
   const endpoint = endpoints.find((e) => e.kind === kind)!;
+  const ActiveIcon = KIND_ICONS[kind];
   const disabled = busy || session === "checking";
   const months: MonthOption[] = monthsResult?.data ?? [];
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && sidebarOpen) {
+        setSidebarOpen(false);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [sidebarOpen]);
   useEffect(() => {
     let active = true;
     request("/api/user")
@@ -155,6 +170,7 @@ export function App() {
   function select(next: Kind) {
     if (disabled) return;
     setKind(next);
+    setSidebarOpen(false);
     setResult(null);
     setError("");
     setMonthId("");
@@ -220,6 +236,44 @@ export function App() {
   }
   return (
     <main className="container home-page">
+      {/* Mobile Top AppBar (Sticky, Mobile Only) */}
+      <header className="mobile-appbar" aria-label="移动端顶部导航">
+        <button
+          type="button"
+          className="mobile-menu-trigger"
+          aria-label="打开导航菜单切换栏目"
+          aria-expanded={sidebarOpen}
+          onClick={() => setSidebarOpen(true)}
+        >
+          <Menu className="size-5 shrink-0 text-foreground" aria-hidden="true" />
+          <span className="mobile-menu-trigger-info">
+            <ActiveIcon className="size-4 shrink-0 text-primary" aria-hidden="true" />
+            <span className="mobile-menu-trigger-name">{endpoint.name}</span>
+          </span>
+          <ChevronRight className="size-3.5 opacity-50 shrink-0" aria-hidden="true" />
+        </button>
+        <div className="mobile-appbar-actions">
+          {session === "authenticated" ? (
+            <div className="mobile-session-badge">
+              <span className="session-dot" data-active="true" aria-hidden="true" />
+              <span className="mobile-session-label">已登录</span>
+            </div>
+          ) : session === "anonymous" ? (
+            <a href="/login.html" className="mobile-login-link" aria-label="前往登录">
+              <LogIn className="size-3.5 shrink-0" aria-hidden="true" />
+              <span>登入</span>
+            </a>
+          ) : null}
+        </div>
+      </header>
+
+      {/* Mobile Sidebar Backdrop Overlay */}
+      <div
+        className={`sidebar-backdrop ${sidebarOpen ? "active" : ""}`}
+        aria-hidden="true"
+        onClick={() => setSidebarOpen(false)}
+      />
+
       <div className="home-header">
       <PageHeader />
       <div className="user-wrapper">
@@ -260,42 +314,118 @@ export function App() {
           <SparkleGitHubButton />
         </div>
       </div>
-      <section aria-labelledby="query-heading">
+      <section aria-labelledby="query-heading" className="query-section">
         <h2 className="section-title" id="query-heading">
           用电查询
         </h2>
-        <LayoutGroup id="query-nav">
-          <nav className="query-nav" aria-label="查询项目">
-            {endpoints.map((e) => {
-              const active = kind === e.kind;
-              const Icon = KIND_ICONS[e.kind];
-              return (
-                <motion.button
-                  key={e.kind}
-                  type="button"
-                  aria-pressed={active}
-                  disabled={disabled}
-                  onClick={() => select(e.kind)}
-                >
-                  {active && (
-                    <motion.span
-                      layoutId="query-nav-active-pill"
-                      data-testid="query-nav-indicator"
-                      className="query-nav-indicator"
-                      transition={
-                        reducedMotion
-                          ? { duration: 0 }
-                          : { type: "spring", stiffness: 500, damping: 36 }
-                      }
-                    />
-                  )}
-                  <Icon className="size-4 shrink-0" aria-hidden="true" />
-                  <span className="query-nav-label">{e.name}</span>
-                </motion.button>
-              );
-            })}
-          </nav>
-        </LayoutGroup>
+        <aside
+          className={`sidebar-drawer ${sidebarOpen ? "open" : ""}`}
+          aria-label="查询栏目侧边栏"
+        >
+          <div className="sidebar-header">
+            <div className="sidebar-brand">
+              <span className="sidebar-brand-title">WIC Energy</span>
+              <span className="sidebar-brand-sub">智慧能源管理</span>
+            </div>
+            <button
+              type="button"
+              className="sidebar-close-btn"
+              aria-label="关闭侧边栏"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X className="size-4" aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="sidebar-session-card">
+            <div className="sidebar-session-row">
+              <span
+                className="session-dot"
+                data-active={session === "authenticated"}
+                aria-hidden="true"
+              />
+              <span className="sidebar-session-title">
+                {session === "checking"
+                  ? "检查状态…"
+                  : session === "authenticated"
+                    ? "会话已连接"
+                    : "未登录"}
+              </span>
+            </div>
+            {session === "authenticated" ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={disabled}
+                onClick={() => {
+                  setSidebarOpen(false);
+                  void logout();
+                }}
+                aria-label="退出当前登录"
+              >
+                <LogOut className="size-3 mr-1 shrink-0" aria-hidden="true" />
+                退出登录
+              </Button>
+            ) : session === "anonymous" ? (
+              <Button asChild size="sm">
+                <a href="/login.html" aria-label="前往登录页面">
+                  <LogIn className="size-3 mr-1 shrink-0" aria-hidden="true" />
+                  登入
+                </a>
+              </Button>
+            ) : null}
+          </div>
+
+          <div className="sidebar-nav-heading">功能栏目切换</div>
+
+          <LayoutGroup id="query-nav">
+            <nav className="query-nav" aria-label="查询项目">
+              {endpoints.map((e) => {
+                const active = kind === e.kind;
+                const Icon = KIND_ICONS[e.kind];
+                return (
+                  <motion.button
+                    key={e.kind}
+                    type="button"
+                    aria-pressed={active}
+                    disabled={disabled}
+                    onClick={() => select(e.kind)}
+                  >
+                    {active && (
+                      <motion.span
+                        layoutId="query-nav-active-pill"
+                        data-testid="query-nav-indicator"
+                        className="query-nav-indicator"
+                        transition={
+                          reducedMotion
+                            ? { duration: 0 }
+                            : { type: "spring", stiffness: 500, damping: 36 }
+                        }
+                      />
+                    )}
+                    <Icon className="size-4 shrink-0" aria-hidden="true" />
+                    <span className="query-nav-label">{e.name}</span>
+                  </motion.button>
+                );
+              })}
+            </nav>
+          </LayoutGroup>
+
+          <div className="sidebar-footer">
+            <a href="/docs.html" className="sidebar-footer-link">
+              <BookOpen className="size-3.5 shrink-0" aria-hidden="true" />
+              <span>接口文档与集成指南 ↗</span>
+            </a>
+            <a
+              href="https://github.com/opxqo/wic-energy"
+              target="_blank"
+              rel="noreferrer"
+              className="sidebar-footer-link"
+            >
+              <span>GitHub 项目仓库 ↗</span>
+            </a>
+          </div>
+        </aside>
         <section className="query-panel" aria-label={endpoint.name} data-has-filters={kind !== "account" && kind !== "months" && kind !== "overview"}>
           <div className="query-copy">
             <h3>{endpoint.name}</h3>

@@ -36,6 +36,12 @@ export function PageHeader({
 }) {
   return (
     <header className="page-header">
+      <img
+        className="page-header-mark"
+        src="/icons/wic-energy-mark.png"
+        alt=""
+        aria-hidden="true"
+      />
       <h1 className="title">{title}</h1>
       <p className="subtitle">{subtitle}</p>
     </header>

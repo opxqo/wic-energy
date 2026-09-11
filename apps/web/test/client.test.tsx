@@ -420,3 +420,38 @@ it("renders shadcn-style documentation with endpoints, codeblocks, and copy feat
   expect(screen.getAllByText("项目概述").length).toBeGreaterThan(0);
   expect(screen.getByText("本页目录")).toBeTruthy();
 });
+
+it("supports mobile sidebar drawer toggle, item selection, and escape key", async () => {
+  await ready();
+  const trigger = screen.getByRole("button", {
+    name: "打开导航菜单切换栏目",
+  });
+  expect(trigger.getAttribute("aria-expanded")).toBe("false");
+
+  // Open sidebar
+  await userEvent.click(trigger);
+  expect(trigger.getAttribute("aria-expanded")).toBe("true");
+  expect(screen.getByLabelText("查询栏目侧边栏").className).toContain("open");
+
+  // Close via close button
+  const closeBtn = screen.getByRole("button", { name: "关闭侧边栏" });
+  await userEvent.click(closeBtn);
+  expect(trigger.getAttribute("aria-expanded")).toBe("false");
+  expect(screen.getByLabelText("查询栏目侧边栏").className).not.toContain("open");
+
+  // Open again and select an item to switch query and auto-close
+  await userEvent.click(trigger);
+  expect(trigger.getAttribute("aria-expanded")).toBe("true");
+  await userEvent.click(
+    screen.getByRole("button", { name: "月用电", exact: true }),
+  );
+  expect(trigger.getAttribute("aria-expanded")).toBe("false");
+  expect(screen.getByLabelText("查询栏目侧边栏").className).not.toContain("open");
+
+  // Open and test Escape key
+  await userEvent.click(trigger);
+  expect(trigger.getAttribute("aria-expanded")).toBe("true");
+  fireEvent.keyDown(window, { key: "Escape" });
+  expect(trigger.getAttribute("aria-expanded")).toBe("false");
+});
+

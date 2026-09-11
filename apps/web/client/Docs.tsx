@@ -136,9 +136,11 @@ export function Docs() {
               {mobileMenuOpen ? <X className="size-4.5" /> : <Menu className="size-4.5" />}
             </button>
             <a href="/" className="flex items-center gap-2 font-semibold tracking-tight transition hover:opacity-90">
-              <div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs">
-                <Zap className="size-4 fill-current" />
-              </div>
+              <img
+                src="/icons/wic-energy-mark.png"
+                alt="WIC Energy"
+                className="size-7 object-contain"
+              />
               <span className="text-base font-bold tracking-tight">WIC Energy</span>
               <Badge variant="outline" className="hidden font-mono text-[10px] tracking-tight sm:inline-flex">
                 v2.0.0
