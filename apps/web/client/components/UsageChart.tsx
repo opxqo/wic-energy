@@ -22,7 +22,7 @@ export default function UsageChart({
   kind: string;
 }) {
   const [view, setView] = useState(kind === "monthly" ? "bar" : "line");
-  if (!series.points.length) return <StatusEmpty>所选时间暂无用电记录。</StatusEmpty>;
+  if (!series?.points?.length) return <StatusEmpty>所选时间暂无用电记录。</StatusEmpty>;
   // Upstream sometimes omits axis labels. Preserve order without inventing dates.
   const points = series.points.map((point, index) => ({
     ...point,

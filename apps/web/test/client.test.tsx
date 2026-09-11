@@ -35,6 +35,12 @@ const response = (body: unknown, status = 200) =>
       headers: { "Content-Type": "application/json" },
     }),
   );
+const emptyUsage = {
+  title: "用电记录",
+  name: "用电量",
+  unit: "kWh",
+  points: [],
+};
 let fetchMock: ReturnType<typeof vi.fn>;
 beforeEach(() => {
   fetchMock = vi.fn((path: string) =>
@@ -43,6 +49,12 @@ beforeEach(() => {
         ? { data: { authenticated: true } }
         : path === "/api/months"
           ? envelope([{ id: 6, label: "2026年04月", year: 2026, month: 4 }])
+        : path.startsWith("/api/usage/overview")
+          ? envelope({ months: [] })
+        : path.startsWith("/api/usage/")
+          ? envelope(emptyUsage)
+        : path.startsWith("/api/payments") || path.startsWith("/api/subsidies")
+          ? envelope([])
         : envelope(account),
     ),
   );
@@ -67,6 +79,7 @@ afterEach(() => {
 const ready = async () => {
   render(<App />);
   await screen.findByText("学校账户已登录");
+  await screen.findByText("test-meter");
 };
 
 describe("React query workflow", () => {
@@ -128,10 +141,6 @@ describe("React query workflow", () => {
 
   it("serializes queries, disables switching, and clears data when session expires", async () => {
     await ready();
-    await userEvent.click(
-      screen.getByRole("button", { name: "查询", exact: true }),
-    );
-    await screen.findByText("test-meter");
     let finish!: (value: Response) => void;
     fetchMock.mockImplementationOnce(
       () =>
@@ -165,9 +174,6 @@ describe("React query workflow", () => {
 
   it("uses pulsating dots loader when loading chart queries", async () => {
     await ready();
-    await userEvent.click(
-      screen.getByRole("button", { name: "月用电", exact: true }),
-    );
     let finish!: (value: Response) => void;
     fetchMock.mockImplementationOnce(
       () =>
@@ -175,8 +181,9 @@ describe("React query workflow", () => {
           finish = resolve;
         }),
     );
-    const button = screen.getByRole("button", { name: "查询", exact: true });
-    fireEvent.submit(button.closest("form")!);
+    await userEvent.click(
+      screen.getByRole("button", { name: "月用电", exact: true }),
+    );
     expect(await screen.findByTestId("pulsating-dots")).toBeTruthy();
     finish(
       response(
@@ -215,7 +222,7 @@ describe("React query workflow", () => {
       screen.getByRole("button", { name: "查询", exact: true }),
     );
     expect(screen.getByRole("alert").textContent).toContain("不能晚于");
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
     await selectDate("结束日期", "2026/9/12");
     fetchMock.mockImplementationOnce(() => response(envelope([])));
     await userEvent.click(
@@ -237,7 +244,6 @@ describe("React query workflow", () => {
       screen.getByRole("button", { name: "日用电", exact: true }),
     );
     await userEvent.click(screen.getByRole("combobox", { name: "月份" }));
-    await userEvent.click(screen.getByRole("option", { name: "2026年04月" }));
     fetchMock.mockImplementationOnce(() =>
       response(
         envelope({
@@ -251,9 +257,7 @@ describe("React query workflow", () => {
         }),
       ),
     );
-    await userEvent.click(
-      screen.getByRole("button", { name: "查询", exact: true }),
-    );
+    await userEvent.click(screen.getByRole("option", { name: "2026年04月" }));
     await screen.findByText("四月用电");
     await userEvent.click(screen.getByText("数据明细 · 2 项"));
     expect(screen.getByRole("cell", { name: "第 1 项" })).toBeTruthy();
@@ -263,9 +267,6 @@ describe("React query workflow", () => {
 
   it("renders interactive overview chart with daily points and month totals", async () => {
     await ready();
-    await userEvent.click(
-      screen.getByRole("button", { name: "用电总览", exact: true }),
-    );
     fetchMock.mockImplementationOnce(() =>
       response(
         envelope({
@@ -286,7 +287,7 @@ describe("React query workflow", () => {
       ),
     );
     await userEvent.click(
-      screen.getByRole("button", { name: "查询", exact: true }),
+      screen.getByRole("button", { name: "用电总览", exact: true }),
     );
     await screen.findByText(/以日为基本单位连续展示全部数据/);
     expect(screen.getAllByText("120.5").length).toBeGreaterThan(0);
@@ -296,9 +297,6 @@ describe("React query workflow", () => {
 
   it("clears account results on logout", async () => {
     await ready();
-    await userEvent.click(
-      screen.getByRole("button", { name: "查询", exact: true }),
-    );
     await screen.findByText("test-meter");
     await userEvent.click(
       screen.getByRole("button", { name: "退出", exact: true }),
@@ -329,6 +327,25 @@ describe("React query workflow", () => {
     );
     await screen.findByText("所选时间暂无用电记录。");
     expect(screen.queryByRole("group")).toBeNull();
+  });
+
+  it("automatically refreshes category with default data when switching tabs", async () => {
+    await ready();
+    fetchMock.mockImplementationOnce(() =>
+      response(
+        envelope({
+          title: "月度用电",
+          name: "用电量",
+          unit: "kWh",
+          points: [{ label: "01", value: 12.3 }],
+        }),
+      ),
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "月用电", exact: true }),
+    );
+    await screen.findByText("月度用电");
+    expect(fetchMock.mock.calls.at(-1)?.[0]).toBe("/api/usage/monthly");
   });
 });
 

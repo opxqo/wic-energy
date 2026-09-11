@@ -69,6 +69,36 @@ export function App() {
       active = false;
     };
   }, []);
+  async function executeQuery(targetKind: Kind, params?: URLSearchParams) {
+    if (locked.current) return;
+    if (session !== "authenticated") {
+      setError("请先登录学校账户，再进行查询。");
+      document.getElementById("login")?.focus();
+      return;
+    }
+    const targetEndpoint = endpoints.find((e) => e.kind === targetKind)!;
+    locked.current = true;
+    setBusy(true);
+    setError("");
+    setResult(null);
+    setStatus(`正在查询${targetEndpoint.name}…`);
+    try {
+      const queryString = params && params.size ? "?" + params.toString() : "";
+      const response = await request<QueryResponse<Kind>>(
+        targetEndpoint.path + queryString,
+      );
+      setResult({ kind: targetKind, response } as Result);
+      if (targetKind === "months")
+        setMonthsResult(response as QueryResponse<"months">);
+      setStatus(`${targetEndpoint.name} · 查询完成`);
+    } catch (error) {
+      report(error);
+      setStatus("查询失败，请重试。");
+    } finally {
+      locked.current = false;
+      setBusy(false);
+    }
+  }
   useEffect(() => {
     if (session !== "authenticated") return;
     let active = true;
@@ -79,6 +109,7 @@ export function App() {
       // Month options are a convenience for other queries. A failure remains
       // visible only when the user explicitly opens the months view.
       .catch(() => {});
+    void executeQuery("account");
     return () => {
       active = false;
     };
@@ -102,30 +133,25 @@ export function App() {
       if (monthsResult) {
         setResult({ kind: "months", response: monthsResult });
         setStatus("可用月份 · 已加载");
+      } else if (session === "authenticated") {
+        void executeQuery("months");
       } else {
-        void loadMonths();
+        setStatus("请先登录学校账户，再进行查询。");
       }
       return;
     }
-    setStatus("选择条件后点击查询。");
+    if (session === "authenticated") {
+      void executeQuery(next);
+    } else {
+      setStatus("请先登录学校账户，再进行查询。");
+    }
   }
-  async function loadMonths() {
-    if (locked.current || session !== "authenticated") return;
-    locked.current = true;
-    setBusy(true);
-    setError("");
-    setStatus("正在获取可用月份…");
-    try {
-      const response = await request<QueryResponse<"months">>("/api/months");
-      setMonthsResult(response);
-      setResult({ kind: "months", response });
-      setStatus("可用月份 · 查询完成");
-    } catch (error) {
-      report(error);
-      setStatus("查询失败，请重试。");
-    } finally {
-      locked.current = false;
-      setBusy(false);
+  function handleMonthChange(value: string) {
+    setMonthId(value);
+    if (session === "authenticated" && !locked.current && !busy) {
+      const params = new URLSearchParams();
+      if (value) params.set("monthId", value);
+      void executeQuery(kind, params);
     }
   }
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -143,26 +169,7 @@ export function App() {
       report(error);
       return;
     }
-    locked.current = true;
-    setBusy(true);
-    setError("");
-    setResult(null);
-    setStatus(`正在查询${endpoint.name}…`);
-    try {
-      const response = await request<QueryResponse<Kind>>(
-        endpoint.path + (params.size ? "?" + params.toString() : ""),
-      );
-      setResult({ kind, response } as Result);
-      if (kind === "months")
-        setMonthsResult(response as QueryResponse<"months">);
-      setStatus(`${endpoint.name} · 查询完成`);
-    } catch (error) {
-      report(error);
-      setStatus("查询失败，请重试。");
-    } finally {
-      locked.current = false;
-      setBusy(false);
-    }
+    await executeQuery(kind, params);
   }
   async function logout() {
     if (locked.current || disabled) return;
@@ -269,7 +276,7 @@ export function App() {
                 {months.length ? (
                   <>
                   <input type="hidden" name="monthId" value={monthId} />
-                  <Select value={monthId} onValueChange={setMonthId} disabled={disabled}>
+                  <Select value={monthId} onValueChange={handleMonthChange} disabled={disabled}>
                     <SelectTrigger id="month-id" aria-label="月份" className="w-[170px]">
                       <SelectValue placeholder="学校默认月份" />
                     </SelectTrigger>
