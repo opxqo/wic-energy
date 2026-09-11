@@ -22,7 +22,7 @@ export const rangeSchema = z
   .refine((v) => !v.from || !v.to || v.from <= v.to, "from 不能晚于 to");
 export const overviewSchema = z
   .object({
-    monthsCount: z.coerce.number().int().positive().max(12).optional(),
+    monthsCount: z.coerce.number().int().positive().max(36).optional(),
     monthId: z.coerce.number().int().positive().safe().optional(),
   })
   .strict();

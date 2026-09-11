@@ -39,3 +39,30 @@ test("service maps overview query to months and daily series", async () => {
   assert.equal(result.months[0]?.totalKwh, 6);
   assert.equal(result.months[0]?.points.length, 2);
 });
+
+test("overview fetches all available months by default", async () => {
+  const upstream: UpstreamPort = {
+    async get(route, params) {
+      if (route.includes("yuelist")) {
+        return `[
+          {"id":1,"text":"2026年01月"},
+          {"id":2,"text":"2026年02月"},
+          {"id":3,"text":"2026年03月"}
+        ]`;
+      }
+      const monthId = params?.id;
+      return `<script>new Highcharts.Chart({title:{text:'${monthId}月'},xAxis:{categories:['01','02']},series:[{name:'日用电',data:[1, 2]}]})</script>`;
+    },
+  };
+  const service = new EnergyService(upstream);
+  const result = await service.query({ kind: "overview" });
+  assert.equal(result.months.length, 3);
+  assert.deepEqual(
+    result.months.map((m) => m.label),
+    ["2026年01月", "2026年02月", "2026年03月"],
+  );
+  assert.equal(
+    result.months.reduce((acc, m) => acc + m.totalKwh, 0),
+    9,
+  );
+});

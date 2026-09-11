@@ -71,7 +71,9 @@ export class EnergyService implements EnergyReader {
         );
         const targetMonths = query.monthId
           ? monthsList.filter((m) => m.id === query.monthId)
-          : monthsList.slice(0, query.monthsCount ?? 3);
+          : query.monthsCount
+            ? monthsList.slice(0, query.monthsCount)
+            : monthsList;
         const months = [];
         for (const m of targetMonths) {
           const series = parseUsageSeries(
