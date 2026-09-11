@@ -10,8 +10,18 @@ test("web login, isolation, cold app, cookies, bearer precedence, logout and err
   const request = (path: string, init?: RequestInit) =>
     fetch(app.url + path, init);
   assert.equal((await request("/api/health")).status, 200);
-  assert.equal((await request("/")).status, 200);
-  assert.equal((await request("/login.html")).status, 200);
+  for (const page of ["/", "/login.html", "/docs.html"]) {
+    const response = await request(page);
+    assert.equal(response.status, 200);
+    const html = await response.text();
+    assert.match(html, /id="root"/);
+    const script = /<script[^>]+src="([^"]+)"/.exec(html)?.[1];
+    assert.ok(script, "React page must load its built module");
+    const asset = await request(script);
+    assert.equal(asset.status, 200);
+    assert.match(asset.headers.get("content-type")!, /javascript/);
+  }
+  assert.equal((await request("/app.js")).status, 404);
   assert.equal((await request("/api/account")).status, 401);
   const login = await request("/api/login", {
     method: "POST",
@@ -122,7 +132,7 @@ test("vercel entry and deployment paths are present", async () => {
   const config = JSON.parse(
     await readFile(new URL("../../../vercel.json", import.meta.url), "utf8"),
   );
-  assert.equal(config.outputDirectory, "apps/web/public");
+  assert.equal(config.outputDirectory, "apps/web/dist/client");
   assert.equal(config.buildCommand, "npm run build:web");
   assert.equal(
     typeof (await import("../../../api/index.js")).default,

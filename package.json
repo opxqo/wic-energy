@@ -1,6 +1,7 @@
 {
   "name": "wic-energy",
   "version": "2.0.0",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -8,7 +9,7 @@
     "apps/*"
   ],
   "engines": {
-    "node": ">=22"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "npm run dev:web",

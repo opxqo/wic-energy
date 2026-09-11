@@ -1,5 +1,10 @@
 {
   "extends": "../../tsconfig.json",
-  "compilerOptions": { "rootDir": ".", "outDir": "dist" },
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": { "@/*": ["./client/*"] }
+  },
   "include": ["src/**/*.ts", "api/**/*.ts"]
 }

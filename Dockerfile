@@ -22,7 +22,6 @@ COPY apps/cli/package.json apps/cli/package.json
 RUN npm ci --omit=dev --ignore-scripts
 COPY --from=build /app/packages/core/dist packages/core/dist
 COPY --from=build /app/apps/web/dist apps/web/dist
-COPY --from=build /app/apps/web/public apps/web/public
 USER node
 EXPOSE 3000
 CMD ["node","apps/web/dist/src/server.js"]

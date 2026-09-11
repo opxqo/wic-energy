@@ -118,8 +118,8 @@ export function createApp(options: ConnectionOptions = connectionConfig()) {
       });
     });
   const publicPath = [
-    new URL("../public/", import.meta.url),
-    new URL("../../public/", import.meta.url),
+    new URL("../dist/client/", import.meta.url),
+    new URL("../client/", import.meta.url),
   ]
     .map((url) => fileURLToPath(url))
     .find(existsSync);
