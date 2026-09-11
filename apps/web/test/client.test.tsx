@@ -9,6 +9,7 @@ import {
 import userEvent from "@testing-library/user-event";
 import { App } from "../client/App";
 import { Login } from "../client/Login";
+import { Docs } from "../client/Docs";
 import { ResultView } from "../client/components/ResultView";
 import type { Result } from "../client/api";
 
@@ -366,4 +367,12 @@ it("submits the requested demo account from the demo login button", async () => 
     username: "南1-548",
     password: "cy@123",
   });
+});
+
+it("renders shadcn-style documentation with endpoints, codeblocks, and copy feature", async () => {
+  render(<Docs />);
+  expect(screen.getByText("接口文档与集成指南")).toBeTruthy();
+  expect(screen.getAllByText("/api/usage/overview").length).toBeGreaterThan(0);
+  expect(screen.getAllByText("项目概述").length).toBeGreaterThan(0);
+  expect(screen.getByText("本页目录")).toBeTruthy();
 });
