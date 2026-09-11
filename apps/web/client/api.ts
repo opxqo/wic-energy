@@ -81,7 +81,7 @@ export const endpoints = [
     kind: "overview",
     name: "用电总览",
     path: "/api/usage/overview",
-    note: "以日为基本单位展示用电，月为日数总量。留空使用默认月份。",
+    note: "以日为基本单位连续展示全部历史日用电数据，自动汇总全量数据。",
   },
 ] as const;
 export type Kind = (typeof endpoints)[number]["kind"];

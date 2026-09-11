@@ -65,38 +65,27 @@ export function OverviewChart({ overview }: { overview: UsageOverview }) {
     });
   }, [sortedMonths]);
 
-  const allTotal = React.useMemo(() => {
+  const totalKwh = React.useMemo(() => {
     return Number(
       sortedMonths.reduce((sum, m) => sum + m.totalKwh, 0).toFixed(2),
     );
   }, [sortedMonths]);
 
-  // Default to "all": show the entire dataset continuously in ONE chart
-  const [activeSelection, setActiveSelection] = React.useState<string>("all");
-
-  const displayedPoints = React.useMemo(() => {
-    if (activeSelection === "all") return allPoints;
-    return allPoints.filter((p) => String(p.monthId) === activeSelection);
-  }, [activeSelection, allPoints]);
-
-  const selectedMonthObj = sortedMonths.find(
-    (m) => String(m.monthId) === activeSelection,
-  );
-
-  const totalKwh = React.useMemo(() => {
-    if (activeSelection === "all") return allTotal;
-    return selectedMonthObj?.totalKwh ?? 0;
-  }, [activeSelection, allTotal, selectedMonthObj]);
-
   const peak = React.useMemo(() => {
-    if (!displayedPoints.length) return 0;
-    return Math.max(...displayedPoints.map((p) => p.kwh));
-  }, [displayedPoints]);
+    if (!allPoints.length) return 0;
+    return Math.max(...allPoints.map((p) => p.kwh));
+  }, [allPoints]);
 
   const avg = React.useMemo(() => {
-    if (!displayedPoints.length) return 0;
-    return Number((totalKwh / displayedPoints.length).toFixed(2));
-  }, [displayedPoints.length, totalKwh]);
+    if (!allPoints.length) return 0;
+    return Number((totalKwh / allPoints.length).toFixed(2));
+  }, [allPoints.length, totalKwh]);
+
+  const dateRangeText = React.useMemo(() => {
+    if (!sortedMonths.length) return "";
+    if (sortedMonths.length === 1) return sortedMonths[0]!.label;
+    return `${sortedMonths[0]!.label} ～ ${sortedMonths[sortedMonths.length - 1]!.label}`;
+  }, [sortedMonths]);
 
   const chartConfig: ChartConfig = React.useMemo(
     () => ({
@@ -114,90 +103,60 @@ export function OverviewChart({ overview }: { overview: UsageOverview }) {
 
   return (
     <Card className="py-0 overflow-hidden">
-      <CardHeader className="flex flex-col items-stretch border-b p-0! sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-6 pt-4 pb-3 sm:py-0!">
+      <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
+        <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
           <CardTitle>用电总览</CardTitle>
           <CardDescription>
-            以日为基本单位连续展示全部数据，上方卡片显示各月用电总量
+            以日为基本单位连续展示全部数据（{dateRangeText} · 共 {sortedMonths.length} 个月）
           </CardDescription>
         </div>
-        <div className="flex flex-wrap border-t sm:border-t-0 sm:border-l">
-          <button
-            type="button"
-            data-active={activeSelection === "all"}
-            className="relative z-30 flex flex-1 flex-col justify-center gap-1 px-5 py-4 text-left even:border-l data-[active=true]:bg-muted/50 data-[active=true]:font-semibold sm:px-6 sm:py-5"
-            onClick={() => setActiveSelection("all")}
-          >
-            <span className="text-xs text-muted-foreground">全部月份</span>
-            <span className="text-base leading-none font-bold sm:text-2xl">
-              {formatNumber(allTotal)}{" "}
+        <div className="grid grid-cols-2 divide-x divide-y border-t sm:flex sm:divide-y-0 sm:divide-x sm:border-t-0 sm:border-l">
+          <div className="flex flex-col justify-center gap-1 px-5 py-4 text-left sm:px-6 sm:py-5">
+            <span className="text-xs text-muted-foreground">全部用电总量</span>
+            <span className="text-base font-bold leading-none sm:text-2xl">
+              {formatNumber(totalKwh)}{" "}
               <small className="text-xs font-normal text-muted-foreground">
                 kWh
               </small>
             </span>
-          </button>
-          {sortedMonths.map((m) => {
-            const isActive = activeSelection === String(m.monthId);
-            return (
-              <button
-                key={m.monthId}
-                type="button"
-                data-active={isActive}
-                className="relative z-30 flex flex-1 flex-col justify-center gap-1 px-5 py-4 text-left border-l data-[active=true]:bg-muted/50 data-[active=true]:font-semibold sm:px-6 sm:py-5"
-                onClick={() =>
-                  setActiveSelection((curr) =>
-                    curr === String(m.monthId) ? "all" : String(m.monthId),
-                  )
-                }
-              >
-                <span className="text-xs text-muted-foreground">{m.label}</span>
-                <span className="text-base leading-none font-bold sm:text-2xl">
-                  {formatNumber(m.totalKwh)}{" "}
-                  <small className="text-xs font-normal text-muted-foreground">
-                    kWh
-                  </small>
-                </span>
-              </button>
-            );
-          })}
+          </div>
+          <div className="flex flex-col justify-center gap-1 px-5 py-4 text-left sm:px-6 sm:py-5">
+            <span className="text-xs text-muted-foreground">日用电峰值</span>
+            <span className="text-base font-bold leading-none sm:text-2xl">
+              {formatNumber(peak)}{" "}
+              <small className="text-xs font-normal text-muted-foreground">
+                kWh
+              </small>
+            </span>
+          </div>
+          <div className="flex flex-col justify-center gap-1 px-5 py-4 text-left sm:px-6 sm:py-5">
+            <span className="text-xs text-muted-foreground">日均用电</span>
+            <span className="text-base font-bold leading-none sm:text-2xl">
+              {formatNumber(avg)}{" "}
+              <small className="text-xs font-normal text-muted-foreground">
+                kWh
+              </small>
+            </span>
+          </div>
+          <div className="flex flex-col justify-center gap-1 px-5 py-4 text-left sm:px-6 sm:py-5">
+            <span className="text-xs text-muted-foreground">统计天数</span>
+            <span className="text-base font-bold leading-none sm:text-2xl">
+              {allPoints.length}{" "}
+              <small className="text-xs font-normal text-muted-foreground">
+                天
+              </small>
+            </span>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="px-2 pt-6 sm:p-6">
-        <div className="chart-metrics mb-4">
-          <div>
-            <span>
-              {activeSelection === "all" ? "全部用电总量" : "当月用电总量"}
-            </span>
-            <strong>
-              {formatNumber(totalKwh)} <small>kWh</small>
-            </strong>
-          </div>
-          <div>
-            <span>日用电峰值</span>
-            <strong>
-              {formatNumber(peak)} <small>kWh</small>
-            </strong>
-          </div>
-          <div>
-            <span>日均用电</span>
-            <strong>
-              {formatNumber(avg)} <small>kWh</small>
-            </strong>
-          </div>
-          <div>
-            <span>统计天数</span>
-            <strong>
-              {displayedPoints.length} <small>天</small>
-            </strong>
-          </div>
-        </div>
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[280px] w-full"
         >
           <BarChart
             accessibilityLayer
-            data={displayedPoints}
+            data={allPoints}
             margin={{
               left: 8,
               right: 8,
@@ -226,7 +185,7 @@ export function OverviewChart({ overview }: { overview: UsageOverview }) {
               }
             />
             <Bar dataKey="kwh" radius={[3, 3, 0, 0]}>
-              {displayedPoints.map((entry) => (
+              {allPoints.map((entry) => (
                 <Cell
                   key={entry.key}
                   fill="var(--primary)"
@@ -238,8 +197,7 @@ export function OverviewChart({ overview }: { overview: UsageOverview }) {
         </ChartContainer>
         <details className="data-details mt-4">
           <summary>
-            {activeSelection === "all" ? "全部月份" : selectedMonthObj?.label}{" "}
-            数据明细 · {displayedPoints.length} 天
+            全部用电数据明细 · 共 {allPoints.length} 天
           </summary>
           <div
             className="table-scroll"
@@ -256,7 +214,7 @@ export function OverviewChart({ overview }: { overview: UsageOverview }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {displayedPoints.map((p) => (
+                {allPoints.map((p) => (
                   <TableRow key={p.key}>
                     <TableCell>{p.fullDate}</TableCell>
                     <TableCell>{p.monthLabel}</TableCell>
