@@ -8,3 +8,5 @@ npm-debug.log*
 .vercel/
 reference/
 artifacts/
+.vercel
+.env*

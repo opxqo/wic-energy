@@ -204,7 +204,7 @@ export function App() {
             退出
           </Button>
         ) : session === "anonymous" ? (
-          <Button asChild size="sm"><a id="login" href="/login.html">登录</a></Button>
+          <Button asChild size="default"><a id="login" href="/login.html">登录</a></Button>
         ) : null}
       </div>
       </div>

@@ -69,11 +69,11 @@
 body {
   margin: 0;
 }
-a {
+a:not([data-slot="button"]) {
   color: var(--blue);
   text-decoration: none;
 }
-a:hover {
+a:not([data-slot="button"]):hover {
   text-decoration: underline;
 }
 button,
@@ -128,32 +128,30 @@ a:focus-visible {
   gap: 14px;
   margin-top: 12px;
 }
-.sparkle-button {
+a.sparkle-button {
   position: relative;
   display: inline-flex;
-  height: 32px;
+  height: 36px;
   align-items: center;
   justify-content: center;
-  gap: 9px;
-  padding: 0 14px;
+  gap: 0;
+  padding: 0 24px;
   overflow: hidden;
-  color: #414a52;
-  border: 1px solid #dfe4e8;
-  border-radius: 999px;
-  background: #fff;
+  color: #fff;
+  border: 1px solid rgb(255 255 255 / 5%);
+  border-radius: 40px;
+  background: #30343b;
   font-size: 13px;
   font-weight: 500;
   letter-spacing: -0.01em;
   text-decoration: none;
   transition:
     background-color 150ms,
-    border-color 150ms,
-    box-shadow 150ms;
+    border-color 150ms;
 }
 .sparkle-button:hover {
-  background: #f8fafb;
-  border-color: #cfd7dd;
-  box-shadow: 0 3px 10px #0000000a;
+  background: #3a424a;
+  border-color: rgb(255 255 255 / 10%);
   text-decoration: none;
 }
 .sparkle-button:focus-visible {
@@ -168,7 +166,6 @@ a:focus-visible {
   flex: 0 0 16px;
   align-items: center;
   justify-content: center;
-  contain: layout paint;
 }
 .sparkle-icon-item {
   position: absolute;
@@ -179,7 +176,15 @@ a:focus-visible {
   will-change: transform, opacity;
 }
 .sparkle-star {
-  color: #b07b00;
+  color: #facc15;
+}
+.sparkle-github,
+.sparkle-star-icon {
+  width: 16px;
+  height: 16px;
+}
+.sparkle-label {
+  margin-left: 10px;
 }
 .sparkle-mark {
   position: absolute;
@@ -187,8 +192,12 @@ a:focus-visible {
   right: -7px;
   width: 10px;
   height: 10px;
-  color: #e2aa23;
+  color: #fef08a;
   will-change: transform, opacity;
+}
+.sparkle-mark svg {
+  width: 10px;
+  height: 10px;
 }
 .section-title {
   font-size: 18px;
@@ -289,6 +298,11 @@ a:focus-visible {
 }
 .form [data-slot="button"] {
   width: 100%;
+}
+.login-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
 .return-index {
   text-align: center;
@@ -753,6 +767,8 @@ details[open] summary {
 }
 .login-card {
   max-width: 360px;
+  width: 100%;
+  margin: 0 auto;
   padding: 25px;
   border: 1px solid #edf0f2;
   border-radius: 20px;
@@ -1001,7 +1017,14 @@ details[open] summary {
 }
 
 .container.home-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   padding-top: 28px;
+}
+
+.home-page .site-footer {
+  margin-top: auto;
 }
 
 .home-header {

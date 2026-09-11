@@ -285,3 +285,24 @@ it("clears a rejected password and keeps credentials out of storage", async () =
   expect(localStorage.length).toBe(0);
   expect(sessionStorage.length).toBe(0);
 });
+
+it("submits the requested demo account from the demo login button", async () => {
+  fetchMock.mockImplementation((path: string) =>
+    response(
+      path === "/api/login"
+        ? { error: { message: "演示账号当前不可用" } }
+        : { data: { authenticated: false } },
+      path === "/api/login" ? 401 : 200,
+    ),
+  );
+  render(<Login />);
+  await userEvent.click(
+    screen.getByRole("button", { name: "演示账户登录", exact: true }),
+  );
+  await screen.findByRole("alert");
+  const [, init] = fetchMock.mock.calls.find(([path]) => path === "/api/login")!;
+  expect(JSON.parse(String(init?.body))).toEqual({
+    username: "南1-548",
+    password: "cy@123",
+  });
+});

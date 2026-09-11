@@ -47,6 +47,13 @@ export function Login() {
       setBusy(false);
     }
   }
+  function submitDemo(form: HTMLFormElement) {
+    const username = form.elements.namedItem("username") as HTMLInputElement;
+    const password = form.elements.namedItem("password") as HTMLInputElement;
+    username.value = "南1-548";
+    password.value = "cy@123";
+    form.requestSubmit();
+  }
   return (
     <main className="container login-page">
       <PageHeader title="登录" subtitle="使用学校能源管理账户" />
@@ -81,9 +88,21 @@ export function Login() {
         {error && (
           <Alert variant="destructive" className="message"><AlertDescription>{error}</AlertDescription></Alert>
         )}
-        <Button type="submit" disabled={busy}>
-          {busy ? "登录中…" : "登录"}
-        </Button>
+        <div className="login-actions">
+          <Button type="submit" disabled={busy}>
+            {busy ? "登录中…" : "登录"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy}
+            onClick={(event) => {
+              if (event.currentTarget.form) submitDemo(event.currentTarget.form);
+            }}
+          >
+            演示账户登录
+          </Button>
+        </div>
         <p className="note">
           密码仅用于本次学校登录，不保存在服务端。会话过期后需重新登录。
         </p>
