@@ -288,10 +288,10 @@ describe("React query workflow", () => {
       screen.getByRole("button", { name: "查询", exact: true }),
     );
     await screen.findByText(
-      "以日为基本单位查看用电趋势，上方卡片显示各月用电总量",
+      "以日为基本单位连续展示全部数据，上方卡片显示各月用电总量",
     );
     expect(screen.getAllByText("120.5").length).toBeGreaterThan(0);
-    expect(screen.getByText("当月用电总量")).toBeTruthy();
+    expect(screen.getByText("全部用电总量")).toBeTruthy();
     expect(fetchMock.mock.calls.at(-1)?.[0]).toBe("/api/usage/overview");
   });
 
