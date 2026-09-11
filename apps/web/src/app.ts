@@ -104,8 +104,23 @@ export function createApp(options: ConnectionOptions = connectionConfig()) {
   for (const [path, kind] of routes)
     app.get("/api" + path, async (req, res) => {
       const session = new SchoolSession(options, credentials(req));
+      // Vercel's `/api/:path*` rewrite forwards the matched path as a
+      // `path` query parameter (often an array like `["account"]` or `["usage", "monthly"]`).
+      // Remove it only when it matches this route; other unknown parameters must still be rejected by core validation.
+      const params = { ...req.query };
+      const routeTarget = path.replace(/^\/+|\/+$/g, "");
+      const rawPath = Array.isArray(params.path)
+        ? params.path.join("/") === routeTarget ||
+          params.path.every((p) => p === routeTarget)
+          ? routeTarget
+          : params.path.join("/")
+        : typeof params.path === "string"
+          ? params.path
+          : undefined;
+      const normalizedPath = rawPath?.replace(/^\/+|\/+$/g, "");
+      if (normalizedPath === routeTarget) delete params.path;
       // Core validation rejects unknown keys, impossible dates and invalid ranges.
-      const query = validateQuery({ ...req.query, kind } as EnergyQuery);
+      const query = validateQuery({ ...params, kind } as EnergyQuery);
       const data = await new EnergyService(session).query(query);
       res.cookie(COOKIE, session.sessionCookie, cookieOptions(req));
       res.json({

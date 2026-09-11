@@ -38,6 +38,27 @@ test("web login, isolation, cold app, cookies, bearer precedence, logout and err
   const cookie = setCookie.split(";")[0]!;
   const account = await request("/api/account", { headers: { cookie } });
   assert.equal((await account.json()).data.basicBalance, 10);
+  const rewrittenAccount = await request("/api/account?path=account", {
+    headers: { cookie },
+  });
+  assert.equal(rewrittenAccount.status, 200);
+  assert.equal((await rewrittenAccount.json()).data.basicBalance, 10);
+  // Test Vercel repeating wildcard parameter (?path=account or ?path=usage&path=monthly)
+  const arrayRewrittenAccount = await request(
+    "/api/account?path=account&path=account",
+    { headers: { cookie } },
+  );
+  assert.equal(arrayRewrittenAccount.status, 200);
+  assert.equal((await arrayRewrittenAccount.json()).data.basicBalance, 10);
+  const rewrittenMonthly = await request(
+    "/api/usage/monthly?path=usage&path=monthly&monthId=1",
+    { headers: { cookie } },
+  );
+  assert.equal(rewrittenMonthly.status, 200);
+  assert.equal(
+    (await request("/api/account?path=months", { headers: { cookie } })).status,
+    400,
+  );
   assert.equal(
     (await request("/api/user", { headers: { cookie } })).status,
     200,
