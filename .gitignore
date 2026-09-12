@@ -6,6 +6,7 @@ dist/
 *.session.json
 npm-debug.log*
 .vercel/
+.edgeone/
 reference/
 artifacts/
 .vercel

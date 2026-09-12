@@ -1,0 +1,12 @@
+{
+  "buildCommand": "npm run build:web",
+  "devCommand": "npm run dev:edgeone",
+  "installCommand": "npm ci",
+  "outputDirectory": "apps/web/dist/client",
+  "nodeVersion": "22.11.0",
+  "cloudFunctions": {
+    "nodejs": {
+      "maxDuration": 60
+    }
+  }
+}

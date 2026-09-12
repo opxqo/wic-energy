@@ -13,6 +13,7 @@
   },
   "scripts": {
     "dev": "npm run dev:web",
+    "dev:edgeone": "npm run build:core && vite --config apps/web/vite.config.ts --host 0.0.0.0 --port",
     "dev:web": "npm run build:core && npm run dev -w @wic-energy/web",
     "dev:cli": "npm run build:core && npm run dev -w @wic-energy/cli --",
     "cli": "npm run dev:cli --",

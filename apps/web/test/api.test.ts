@@ -168,3 +168,24 @@ test("vercel entry and deployment paths are present", async () => {
     "function",
   );
 });
+test("edgeone entry and deployment paths are present", async (t) => {
+  const config = JSON.parse(
+    await readFile(new URL("../../../edgeone.json", import.meta.url), "utf8"),
+  );
+  assert.equal(config.outputDirectory, "apps/web/dist/client");
+  assert.equal(config.buildCommand, "npm run build:web");
+  assert.equal(config.cloudFunctions.nodejs.maxDuration, 60);
+
+  const edgeOneApp = (await import(
+    "../../../cloud-functions/api/[[default]].js"
+  )).default;
+  const app = await listen(edgeOneApp);
+  t.after(() => close(app.server));
+
+  assert.deepEqual(await (await fetch(app.url + "/api/health")).json(), {
+    ok: true,
+  });
+  assert.deepEqual(await (await fetch(app.url + "/health")).json(), {
+    ok: true,
+  });
+});
