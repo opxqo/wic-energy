@@ -28,6 +28,38 @@ function cookieOptions(req: Request) {
     path: "/",
   };
 }
+function firstForwardedValue(value: string | undefined) {
+  return value?.split(",", 1)[0]?.trim();
+}
+function publicRequestOrigin(req: Request) {
+  const host =
+    firstForwardedValue(req.get("x-forwarded-host")) ?? req.get("host");
+  const protocol =
+    firstForwardedValue(req.get("x-forwarded-proto")) ?? req.protocol;
+  if (!host || (protocol !== "http" && protocol !== "https")) return;
+  try {
+    return new URL(protocol + "://" + host).origin;
+  } catch {
+    return;
+  }
+}
+function isCrossSitePost(req: Request) {
+  if (req.method !== "POST") return false;
+
+  const fetchSite = req.get("sec-fetch-site");
+  if (fetchSite === "cross-site") return true;
+  // EdgeOne may replace Host while proxying to a Cloud Function. The browser's
+  // Fetch Metadata header still reliably identifies a genuine same-origin form.
+  if (fetchSite === "same-origin") return false;
+
+  const origin = req.get("origin");
+  if (!origin) return false;
+  try {
+    return new URL(origin).origin !== publicRequestOrigin(req);
+  } catch {
+    return true;
+  }
+}
 function credentials(req: Request): string {
   const authorization = req.get("authorization");
   if (authorization !== undefined) {
@@ -56,12 +88,7 @@ export function createApp(options: ConnectionOptions = connectionConfig()) {
   });
   app.use(express.json({ limit: "8kb" }));
   app.use("/api", (req, res, next) => {
-    if (
-      req.method === "POST" &&
-      (req.get("sec-fetch-site") === "cross-site" ||
-        (req.get("origin") &&
-          req.get("origin") !== req.protocol + "://" + req.get("host")))
-    ) {
+    if (isCrossSitePost(req)) {
       res
         .status(403)
         .json({ error: { code: "FORBIDDEN", message: "不允许跨站提交" } });

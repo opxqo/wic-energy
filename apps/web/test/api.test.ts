@@ -156,6 +156,59 @@ test("web login, isolation, cold app, cookies, bearer precedence, logout and err
     ).status,
     403,
   );
+  assert.equal(
+    (
+      await request("/api/logout", {
+        method: "POST",
+        headers: {
+          Origin: "https://wic.sd.opxqo.cn",
+          "Sec-Fetch-Site": "same-origin",
+          "X-Forwarded-Host": "edgeone-function.internal",
+          "X-Forwarded-Proto": "https",
+        },
+      })
+    ).status,
+    200,
+  );
+  assert.equal(
+    (
+      await request("/api/logout", {
+        method: "POST",
+        headers: {
+          Origin: "https://wic.sd.opxqo.cn",
+          "X-Forwarded-Host": "wic.sd.opxqo.cn",
+          "X-Forwarded-Proto": "https",
+        },
+      })
+    ).status,
+    200,
+  );
+  assert.equal(
+    (
+      await request("/api/logout", {
+        method: "POST",
+        headers: {
+          Origin: app.url,
+          "Sec-Fetch-Site": "same-origin",
+        },
+      })
+    ).status,
+    200,
+  );
+  assert.equal(
+    (
+      await request("/api/logout", {
+        method: "POST",
+        headers: {
+          Origin: "https://other.example",
+          "Sec-Fetch-Site": "cross-site",
+          "X-Forwarded-Host": "other.example",
+          "X-Forwarded-Proto": "https",
+        },
+      })
+    ).status,
+    403,
+  );
 });
 test("vercel entry and deployment paths are present", async () => {
   const config = JSON.parse(
