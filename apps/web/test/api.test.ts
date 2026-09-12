@@ -174,7 +174,8 @@ test("edgeone entry and deployment paths are present", async (t) => {
   );
   assert.equal(config.outputDirectory, "apps/web/dist/client");
   assert.equal(config.buildCommand, "npm run build:web");
-  assert.equal(config.cloudFunctions.nodejs.maxDuration, 60);
+  assert.equal(config.nodeVersion, "22.17.1");
+  assert.equal(config.cloudFunctions.maxDuration, 60);
 
   const edgeOneApp = (await import(
     "../../../cloud-functions/api/[[default]].js"

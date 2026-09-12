@@ -3,10 +3,8 @@
   "devCommand": "npm run dev:edgeone",
   "installCommand": "npm ci",
   "outputDirectory": "apps/web/dist/client",
-  "nodeVersion": "22.11.0",
+  "nodeVersion": "22.17.1",
   "cloudFunctions": {
-    "nodejs": {
-      "maxDuration": 60
-    }
+    "maxDuration": 60
   }
 }
